@@ -1,5 +1,5 @@
 ManifestFileVersion: 0
-CRC: 474294828
+CRC: 867246165
 Hashes:
   AssetFileHash:
     serializedVersion: 2
@@ -12,5 +12,5 @@ ClassTypes:
 - Class: 83
   Script: {instanceID: 0}
 Assets:
-- Assets/CResources/setting 1.wav
+- Assets/CResources/A/setting 1.wav
 Dependencies: []
