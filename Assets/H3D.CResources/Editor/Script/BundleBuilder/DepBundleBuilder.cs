@@ -58,7 +58,7 @@ namespace H3D.EditorCResources
                 output.Add(manifestFile);
 
 
-                CResources.CResourcesAssetLocator.WriteLocationData(System.IO.Path.Combine(cachePath,"loactions"));
+                H3D.CResources.CResourceLocator.WriteLocationData(System.IO.Path.Combine(cachePath,"loactions"));
 
                 BundleFile loactions = new BundleFile()
                 {
