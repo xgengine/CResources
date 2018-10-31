@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEditor;
 using System.Collections.Generic;
+using H3D.CResources;
+using System.IO;
 namespace H3D.EditorCResources
 {
     [BundleBuidler]
@@ -42,36 +44,98 @@ namespace H3D.EditorCResources
                     BundleFile bundleFile = new BundleFile()
                     {
                         m_BundleName = bundlePath,
-                        m_Path = System.IO.Path.Combine(cachePath, bundlePath),
+                        m_Path = Path.Combine(cachePath, bundlePath),
                         m_BFType = BundleFile.BFType.Bundle
                     };
                     output.Add(bundleFile);
                 }
 
+                //BundleFile manifestFile = new BundleFile()
+                //{
+                //    m_BundleName = Path.GetFileName(cachePath),
+                //    m_Path = Path.Combine(cachePath ,System.IO.Path.GetFileName(cachePath)),
+                //    m_BFType = BundleFile.BFType.Manifest
+                //};
+                //output.Add(manifestFile);
 
-                BundleFile manifestFile = new BundleFile()
-                {
-                    m_BundleName = System.IO.Path.GetFileName(cachePath),
-                    m_Path = System.IO.Path.Combine(cachePath ,System.IO.Path.GetFileName(cachePath)),
-                    m_BFType = BundleFile.BFType.Manifest
-                };
-                output.Add(manifestFile);
-
-
-                H3D.CResources.CResourceLocator.WriteLocationData(System.IO.Path.Combine(cachePath,"loactions"));
+                string locationPath = Path.Combine(cachePath, "locations");
+                WriteLocation(input, manifest, locationPath);
 
                 BundleFile loactions = new BundleFile()
                 {
                     m_BundleName = "loactions",
-                    m_Path = System.IO.Path.Combine(cachePath, "loactions"),
+                    m_Path = locationPath,
                     m_BFType = BundleFile.BFType.Location
                 };
 
                 output.Add(loactions);
 
+            }        
+        }
+
+        class LocationData
+        {
+            public string m_BundleName;
+            public int[]  m_dependencies;
+        }
+        void WriteLocation(List<AssetFileGroup> assetGroups, AssetBundleManifest manifest,string dataPath)
+        {
+            Dictionary<int, LocationData> maps = new Dictionary<int, LocationData>();
+            Dictionary<string, int> bundleNameToLocaiton = new Dictionary<string, int>();
+
+            foreach (var assetGroup in assetGroups)
+            {
+
+                string bundleName = assetGroup.m_BundleName ;
+                string assetPath = assetGroup.m_AssetFiles[0].m_FilePath;
+                System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+                int location;
+                if(assetGroup.m_AssetFiles.Count ==1)
+                {
+                    location= CResourceLocator.Lcation(CResourceLocator.AssetPathToLoadPath(assetPath), type);
+                }
+                else
+                {
+                    location = bundleName.GetHashCode();
+                }
+                maps.Add(location,
+                    new LocationData()
+                    {
+                        m_BundleName = bundleName,
+                        m_dependencies = null
+                    }
+                );
+                bundleNameToLocaiton.Add(bundleName,location);        
+            }
+            foreach(var bundleData in maps)
+            {
+                string[] deps = manifest.GetAllDependencies(bundleData.Value.m_BundleName);
+
+                bundleData.Value.m_dependencies = new int[deps.Length];
+
+                for(int i=0;i<deps.Length;i++)
+                {
+                    bundleData.Value.m_dependencies[i] = bundleNameToLocaiton[deps[i]];
+                }
             }
 
-           
+            using (Stream stream = new FileStream(dataPath, FileMode.Create))
+            {
+                using (var bw = new BinaryWriter(stream))
+                {
+                    bw.Write(maps.Count);
+                    foreach (var item in maps)
+                    {
+                        bw.Write(item.Key);
+                        bw.Write(item.Value.m_BundleName);
+                        bw.Write(item.Value.m_dependencies.Length);
+                        for(int i=0;i<item.Value.m_dependencies.Length;i++)
+                        {
+                            bw.Write(item.Value.m_dependencies[i]);
+                        }
+                    }
+                }
+            }
         }
 
     }

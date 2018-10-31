@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 3896333478
+CRC: 2804317623
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: f5f536558fc69624707cffbdddf0571d
+    Hash: ebf4f3313cd64d28bf709d4743ff1c10
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 6f165f44e4778b6c9d85e7a145a54cb1
+    Hash: 6e91bf4d7bfc7c90eaa9aea5318d52d8
 HashAppended: 0
 ClassTypes:
 - Class: 21
@@ -18,4 +18,4 @@ ClassTypes:
 Assets:
 - Assets/CResources/New Material.mat
 Dependencies:
-- E:/UnityExample/CResources/BundleCache/bundles/sharedassets/9840e2c7221df235b13ed4e5bfe093c9
+- C:/Users/14034/Desktop/UnityDemo/CResources/BundleCache/bundles/sharedassets/9840e2c7221df235b13ed4e5bfe093c9

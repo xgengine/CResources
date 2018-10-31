@@ -82,7 +82,6 @@ namespace H3D.CResources
 
     public class CResourceLocation:IResourceLocation
     {
-        string m_name;
         string m_id;
         string m_providerId;
         List<IResourceLocation> m_dependencies;
@@ -90,56 +89,26 @@ namespace H3D.CResources
         public string ProviderId { get { return m_providerId; } }
         public IList<IResourceLocation> Dependencies { get { return m_dependencies; } }
         public bool HasDependencies { get { return m_dependencies != null && m_dependencies.Count > 0; } }
-        public override string ToString()
-        {
-            return m_name;
-        }
-        public CResourceLocation(string name, string id, string providerId, params IResourceLocation[] dependencies)
+
+        public CResourceLocation(string id, string providerId, params IResourceLocation[] dependencies)
         {
             if (string.IsNullOrEmpty(id))
                 throw new System.ArgumentNullException(id);
             if (string.IsNullOrEmpty(providerId))
                 throw new System.ArgumentNullException(providerId);
-            m_name = name;
             m_id = id;
             m_providerId = providerId;
+            m_dependencies = new List<IResourceLocation>(dependencies);
+        }
+        public void AddDependencies(IResourceLocation[] dependencies)
+        {
             m_dependencies = new List<IResourceLocation>(dependencies);
         }
     }
 
     public class CResourceLocator : IResourceLocator
     {
-#if UNITY_EDITOR
-        public static void WriteLocationData(string dataPath)
-        {
-            Dictionary<int, string> maps = new Dictionary<int, string>();
 
-            IEnumerable<string> paths = Directory.GetFiles(ConstValue.m_PackPath, "*.*", SearchOption.AllDirectories).Where(
-                    p => p.EndsWith(".meta") == false && p.EndsWith(".cs") == false
-                );
-
-            foreach (var wholeFilePath in paths)
-            {
-                string assetPath = CRUtlity.FullPathToAssetPath(wholeFilePath);
-                string guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
-                System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-                maps.Add(Lcation(AssetPathToLoadPath(assetPath), type), guid);
-            }
-
-            using (Stream stream = new FileStream(dataPath, FileMode.Create))
-            {
-                using (var bw = new BinaryWriter(stream))
-                {
-                    bw.Write(maps.Count);
-                    foreach (var item in maps)
-                    {
-                        bw.Write(item.Key);
-                        bw.Write(item.Value);
-                    }
-                }
-            }
-        }
-#endif
         public CResourceLocator()
         {
             ReadLoactionData(Path.Combine( Path.GetDirectoryName( Application.dataPath),ConstValue.m_BundlePath+"/"+ConstValue.m_LocationName));
@@ -151,9 +120,33 @@ namespace H3D.CResources
             {
                 using (var br = new BinaryReader(stream))
                 {
-                    int count = br.ReadInt32();
+                    int count = br.ReadInt32(); 
                     m_Lcoations = new Dictionary<int, CResourceLocation>(count);
-                  
+                    Dictionary<int, int[]> deps = new Dictionary<int, int[]>();
+                    for(int i =0;i<count;i++)
+                    {
+                        int hashCode = br.ReadInt32();
+                        string bundleName = br.ReadString();
+                        int depCount = br.ReadInt32();
+                        int[] depLocations = new int[depCount];
+                        for (int k =0;k<depCount;i++)
+                        {
+                            depLocations[k] = br.ReadInt32();
+                        }
+                        deps.Add(hashCode,depLocations);
+                        CResourceLocation cLocation = new CResourceLocation(bundleName, "",null);
+                        m_Lcoations.Add(hashCode, cLocation);
+                    }
+                    foreach(var data in m_Lcoations)
+                    {
+                        CResourceLocation[] dependencies = new CResourceLocation[deps.Values.Count];
+                        for(int i =0;i<dependencies.Length;i++)
+                        {
+                            dependencies[i] = m_Lcoations[deps[data.Key][i]];
+                        }
+                        data.Value.AddDependencies(dependencies);
+                    }
+
                 }
             }
         }

@@ -78,7 +78,7 @@ namespace H3D.EditorCResources
             byte[] data = System.Text.Encoding.Default.GetBytes(info);
             MD5 md5 = new MD5CryptoServiceProvider();
             byte[] targetData = md5.ComputeHash(data);
-            return System.BitConverter.ToString(targetData).Replace("-", "");
+            return System.BitConverter.ToString(targetData).Replace("-", "").ToLower();
         }
 
         public static string CalauateMD5CodeFile(string filePath)
