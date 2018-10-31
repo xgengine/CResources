@@ -63,7 +63,7 @@ namespace H3D.EditorCResources
 
                 BundleFile loactions = new BundleFile()
                 {
-                    m_BundleName = "loactions",
+                    m_BundleName = "locations",
                     m_Path = locationPath,
                     m_BFType = BundleFile.BFType.Location
                 };
@@ -127,9 +127,12 @@ namespace H3D.EditorCResources
                     foreach (var item in maps)
                     {
                         bw.Write(item.Key);
-                        bw.Write(item.Value.m_BundleName);
+                        bw.Write(item.Value.m_BundleName);               
+                    }
+                    foreach (var item in maps)
+                    {
                         bw.Write(item.Value.m_dependencies.Length);
-                        for(int i=0;i<item.Value.m_dependencies.Length;i++)
+                        for (int i = 0; i < item.Value.m_dependencies.Length; i++)
                         {
                             bw.Write(item.Value.m_dependencies[i]);
                         }

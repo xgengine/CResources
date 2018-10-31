@@ -120,38 +120,33 @@ namespace H3D.CResources
             {
                 using (var br = new BinaryReader(stream))
                 {
-                    int count = br.ReadInt32(); 
-                    m_Lcoations = new Dictionary<int, CResourceLocation>(count);
-                    Dictionary<int, int[]> deps = new Dictionary<int, int[]>();
+                    int count = br.ReadInt32();
+                    m_Locations = new Dictionary<int, CResourceLocation>(count);
+                    List<CResourceLocation> tempLocations = new List<CResourceLocation>(count);
                     for(int i =0;i<count;i++)
                     {
                         int hashCode = br.ReadInt32();
                         string bundleName = br.ReadString();
-                        int depCount = br.ReadInt32();
-                        int[] depLocations = new int[depCount];
-                        for (int k =0;k<depCount;i++)
-                        {
-                            depLocations[k] = br.ReadInt32();
-                        }
-                        deps.Add(hashCode,depLocations);
-                        CResourceLocation cLocation = new CResourceLocation(bundleName, "",null);
-                        m_Lcoations.Add(hashCode, cLocation);
+                        CResourceLocation cLocation = new CResourceLocation(bundleName, "ccc");
+                        m_Locations.Add(hashCode, cLocation);
+                        tempLocations.Add(cLocation);
                     }
-                    foreach(var data in m_Lcoations)
+                    for (int i = 0; i < count; i++)
                     {
-                        CResourceLocation[] dependencies = new CResourceLocation[deps.Values.Count];
-                        for(int i =0;i<dependencies.Length;i++)
+                        int depCount = br.ReadInt32();
+                        CResourceLocation[] dependencies = new CResourceLocation[depCount];
+                        for (int k = 0; k < depCount; k++)
                         {
-                            dependencies[i] = m_Lcoations[deps[data.Key][i]];
+                            dependencies[k] = m_Locations[br.ReadInt32()];
                         }
-                        data.Value.AddDependencies(dependencies);
+                        tempLocations[i].AddDependencies(dependencies);
                     }
-
+                    tempLocations.Clear();
                 }
             }
         }
 
-        protected static Dictionary<int, CResourceLocation> m_Lcoations;
+        protected static Dictionary<int, CResourceLocation> m_Locations;
 
         IResourceLocation IResourceLocator.GetLocation<TObject>(string requestID)
         {
@@ -159,9 +154,9 @@ namespace H3D.CResources
 
             int hashCode = Lcation(requestID, typeof(TObject));
 
-            if(m_Lcoations.ContainsKey(hashCode))
+            if (m_Locations.ContainsKey(hashCode))
             {
-                assetLocation = m_Lcoations[hashCode];
+                assetLocation = m_Locations[hashCode];
             }
 
             return assetLocation;
