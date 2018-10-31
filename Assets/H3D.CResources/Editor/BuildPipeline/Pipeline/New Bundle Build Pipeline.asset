@@ -1,0 +1,115 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e58b2ad5c6291f84293e860b7ae69888, type: 3}
+  m_Name: New Bundle Build Pipeline
+  m_EditorClassIdentifier: 
+  m_AssetCollector:
+  - {fileID: 114842993345672832}
+  m_AssetGaneraters: []
+  m_AssetModifiers:
+  - {fileID: 114338882167001780}
+  m_BundleNameBuilder:
+  - {fileID: 114978496894934046}
+  m_BundleBuidler:
+  - {fileID: 114992058675069774}
+  m_BundleExporter:
+  - {fileID: 114925807967057516}
+--- !u!114 &114338882167001780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29bca2570af3a439992bac935c858d2f, type: 3}
+  m_Name: MaterialSplitAlphaModifier
+  m_EditorClassIdentifier: 
+  m_InputCount: 3
+  m_OutputCount: 3
+  m_NeedOperateCount: 2
+  m_RealOperateCount: 0
+  m_Progresss: 0
+  m_AddedSuffix: _Alpha_ETC1
+  m_ShaderPropertyAlphaAddedSuffix: _ALPHA
+--- !u!114 &114842993345672832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a8f6f772f8287a4295d78df30f988d6, type: 3}
+  m_Name: AssetCollector
+  m_EditorClassIdentifier: 
+  m_InputCount: 0
+  m_OutputCount: 3
+  m_NeedOperateCount: 0
+  m_RealOperateCount: 0
+  m_Progresss: 0
+  m_AssetsPath: Assets/CResources
+  m_UnityFilterText: 
+  m_RegularExpression: 
+  m_RegularMatchedInculde: 0
+--- !u!114 &114925807967057516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dcb9a5b39dcc9849a22f9b06063f2d3, type: 3}
+  m_Name: BundleExporter
+  m_EditorClassIdentifier: 
+  m_InputCount: 0
+  m_OutputCount: 0
+  m_NeedOperateCount: 0
+  m_RealOperateCount: 0
+  m_Progresss: 0
+  m_DeleteExporterFolder: 1
+  m_IsMoveManifest: 1
+  m_ExproterPath: assetbundles/cresouces
+--- !u!114 &114978496894934046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eac59d91daf254689a8ecc0c81f18d5d, type: 3}
+  m_Name: CResourcesBundleNameBuilder
+  m_EditorClassIdentifier: 
+  m_InputCount: 3
+  m_OutputCount: 4
+  m_NeedOperateCount: 0
+  m_RealOperateCount: 0
+  m_Progresss: 0
+--- !u!114 &114992058675069774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b036b21dca4e4636aed9a783b77eb05, type: 3}
+  m_Name: DepBundleBuilder
+  m_EditorClassIdentifier: 
+  m_InputCount: 0
+  m_OutputCount: 0
+  m_NeedOperateCount: 0
+  m_RealOperateCount: 0
+  m_Progresss: 0
+  m_Options: 256
+  m_BundleCachePath: BundleCache\bundles

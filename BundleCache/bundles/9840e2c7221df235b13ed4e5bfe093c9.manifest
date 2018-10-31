@@ -1,0 +1,20 @@
+ManifestFileVersion: 0
+CRC: 2339817494
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: b2f1d74dbbda8dbbc5ee9b330a1ec6b0
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: d1330b8d51f6e3d145ee247ac8d5636d
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+Assets:
+- Assets/New Folder/NGUI/Shaders/Transparent Alpha Colored_Alpha_ETC1.shader
+- Assets/CResourcesSharedData/Materials/TankAlbedo2.png
+- Assets/CResourcesSharedData/Materials/TankAlbedo2_Alpha_ETC1.png
+Dependencies: []

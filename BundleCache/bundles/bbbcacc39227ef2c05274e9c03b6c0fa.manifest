@@ -1,0 +1,23 @@
+ManifestFileVersion: 0
+CRC: 2984734200
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 83e4ad9561e81633927423a9667cb46d
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 6f165f44e4778b6c9d85e7a145a54cb1
+HashAppended: 0
+ClassTypes:
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+Assets:
+- Assets/CResources/TankAlbedo2.mat
+Dependencies:
+- E:/UnityExample/CResources/BundleCache/bundles/ecadcd2b8ecd036d452bde5dd2a5511f
+- E:/UnityExample/CResources/BundleCache/bundles/575a2a4b12fa0dc6ed035becdbbc1fc3
+- E:/UnityExample/CResources/BundleCache/bundles/46e99d65106aeba3a6b9b58653a9e30c
