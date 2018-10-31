@@ -1,5 +1,5 @@
 ManifestFileVersion: 0
-CRC: 3042260526
+CRC: 3896333478
 Hashes:
   AssetFileHash:
     serializedVersion: 2
@@ -16,6 +16,6 @@ ClassTypes:
 - Class: 48
   Script: {instanceID: 0}
 Assets:
-- Assets/CResources/A/New Material.mat
+- Assets/CResources/New Material.mat
 Dependencies:
 - E:/UnityExample/CResources/BundleCache/bundles/sharedassets/9840e2c7221df235b13ed4e5bfe093c9
