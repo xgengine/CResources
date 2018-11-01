@@ -75,6 +75,7 @@ namespace H3D.EditorCResources
 
         class LocationData
         {
+            public string m_LoadPath;
             public string m_BundleName;
             public int[]  m_dependencies;
         }
@@ -90,8 +91,8 @@ namespace H3D.EditorCResources
                 string assetPath = assetGroup.m_AssetFiles[0].m_FilePath;
                 System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
                 int location;
-                if(assetGroup.m_AssetFiles.Count ==1)
-                {
+                if(assetGroup.m_IsLoadAsset)
+                {      
                     location= CResourceLocator.Lcation(CResourceLocator.AssetPathToLoadPath(assetPath), type);
                 }
                 else
@@ -109,7 +110,7 @@ namespace H3D.EditorCResources
             }
             foreach(var bundleData in maps)
             {
-                string[] deps = manifest.GetAllDependencies(bundleData.Value.m_BundleName);
+                string[] deps = manifest.GetDirectDependencies(bundleData.Value.m_BundleName);
 
                 bundleData.Value.m_dependencies = new int[deps.Length];
 

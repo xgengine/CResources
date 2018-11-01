@@ -28,13 +28,13 @@ namespace H3D.EditorCResources
             m_OutputCount = outputCount;
             m_NeedOperateCount = needOperateCount;
             m_RealOperateCount = realOperateCount;
-            LogUtlity.Log("Input Count :{0} * Output Count :{1}  * Need Operate Count :{2} * Real Operate Count :{3}", m_InputCount,m_OutputCount,m_NeedOperateCount,m_RealOperateCount);
+            LogUtility.Log("Input Count :{0} * Output Count :{1}  * Need Operate Count :{2} * Real Operate Count :{3}", m_InputCount,m_OutputCount,m_NeedOperateCount,m_RealOperateCount);
         }
         public void Statistics(int inputCount, int outputCount)
         {
             m_InputCount = inputCount;
             m_OutputCount = outputCount;
-            LogUtlity.Log("Input Count :{0} * Output Count :{1}  ", m_InputCount, m_OutputCount);
+            LogUtility.Log("Input Count :{0} * Output Count :{1}  ", m_InputCount, m_OutputCount);
         }
  
         public void RecordTime()
@@ -43,7 +43,7 @@ namespace H3D.EditorCResources
         }
         public void StatisticsUseTime()
         {
-            LogUtlity.Log(" Use Time {0}" ,Time.realtimeSinceStartup-m_RunUseTime);
+            LogUtility.Log(" Use Time {0}" ,Time.realtimeSinceStartup-m_RunUseTime);
         }
 
     }

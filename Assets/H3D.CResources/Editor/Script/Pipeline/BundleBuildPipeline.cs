@@ -145,7 +145,7 @@ namespace H3D.EditorCResources
             }
             catch (CResourcesException e)
             {
-                LogUtlity.LogError("{0} {1}",e.Message, e.StackTrace);
+                LogUtility.LogError("{0} {1}",e.Message, e.StackTrace);
             }
         }
 

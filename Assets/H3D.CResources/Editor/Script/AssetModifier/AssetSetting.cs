@@ -12,7 +12,7 @@ namespace H3D.EditorCResources
 
         protected  void Apply<T>(List<AssetFile> input , List<AssetFile> output) where T : AssetImporter
         {
-            LogUtlity.m_LogTag = LogUtlity.LogTag.AssetModifier;
+            LogUtility.m_LogTag = LogUtility.LogTag.AssetModifier;
 
             RecordTime();
 
@@ -50,7 +50,7 @@ namespace H3D.EditorCResources
                     OverwriteImportSettings(importer, templeteImproter);
                     realOperateCount++;
                     importer.SaveAndReimport();
-                    LogUtlity.Log(" Overwrite import seting {0}", item.Key);
+                    LogUtility.Log(" Overwrite import seting {0}", item.Key);
                 }
             }
 

@@ -7,9 +7,16 @@ public class NewBehaviourScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-        CResources.Load<GameObject>("A/Cube");
-      
-	}
+        GameObject obj =  CResources.Load<GameObject>("A/Cube");
+
+        Instantiate(obj);
+        LogUtility.Log(obj);
+        Material mat = CResources.Load<Material>("New Material");
+        LogUtility.Log(mat);
+
+        AudioClip clip = CResources.Load<AudioClip>("b/setting 1");
+        LogUtility.Log(clip);
+    }
 	void Update () {
 		
 	}

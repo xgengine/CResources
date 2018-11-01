@@ -20,7 +20,7 @@ namespace H3D.EditorCResources
         //配置的日志
         private static LogEditorConfig[] _logEditorConfig = new LogEditorConfig[]
         {
-        new LogEditorConfig("Assets/H3D.CResources/Editor/Script/Utility/LogUtlity.cs",typeof(LogUtlity))
+        new LogEditorConfig("Assets/H3D.CResources/RuntimeScript/Utility/LogUtility.cs",typeof(H3D.CResources.LogUtility))
         };
 
         //处理从ConsoleWindow双击跳转

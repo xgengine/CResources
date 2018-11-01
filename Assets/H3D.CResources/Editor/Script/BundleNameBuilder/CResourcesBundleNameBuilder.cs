@@ -9,7 +9,7 @@ namespace H3D.EditorCResources
     {
         void IBundleNameBuilder.Hanlde(List<AssetFile> input, out List<AssetFileGroup> output)
         {
-            LogUtlity.m_LogTag = LogUtlity.LogTag.BundleNamBuidler;
+            LogUtility.m_LogTag = LogUtility.LogTag.BundleNamBuidler;
 
             RecordTime();
 
@@ -89,12 +89,15 @@ namespace H3D.EditorCResources
                     }
                     bundleGUID = EditorCRUtlity.CalauateMD5Code(bundleGUID);
                 }
+                bool isLoadAsset = false;
                 if(sAsset.Value.Count==1)
                 {
+                    isLoadAsset = true;
                     bundleGUID = "load/" + bundleGUID;
                 }
                 else
                 {
+                    isLoadAsset = false;
                     bundleGUID = "sharedassets/" + bundleGUID;
                 }
               
@@ -103,6 +106,7 @@ namespace H3D.EditorCResources
                 if (!sharedGroups.ContainsKey(bundleGUID))
                 {
                     group = new AssetFileGroup();
+                    group.m_IsLoadAsset = isLoadAsset;
                     group.m_BundleName = bundleGUID;
                     sharedGroups.Add(bundleGUID, group);
                 }

@@ -16,7 +16,7 @@ namespace H3D.EditorCResources
         public bool m_RegularMatchedInculde = false;
         void IAssetCollector.Hanlde(out List<AssetFile> output)
         {
-            LogUtlity.m_LogTag = LogUtlity.LogTag.AssetCollector;
+            LogUtility.m_LogTag = LogUtility.LogTag.AssetCollector;
             output = new List<AssetFile>();
 
             if (!string.IsNullOrEmpty(m_UnityFilterText))

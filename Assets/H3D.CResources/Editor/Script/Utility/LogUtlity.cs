@@ -4,7 +4,7 @@ using System;
 
 namespace H3D.EditorCResources
 {
-    public class LogUtlity
+    public class LogUtility
     {
         
         public static ILogger logger{

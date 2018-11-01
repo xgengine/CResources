@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 1353170600
+CRC: 1325381585
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: e3d15122ff5f036de033633974000255
+    Hash: b5a64df5c83076043f32463b2dcc0f7d
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 312ce7aa3eaa5ce8ed384f69c420806d
+    Hash: cf3f348e2267d190e6df40cbb42919b5
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -31,4 +31,4 @@ Assets:
 - Assets/CResources/A/Cube.prefab
 - Assets/CResourcesSharedData/Materials/TankAlbedo2.mat
 Dependencies:
-- C:/Users/14034/Desktop/UnityDemo/CResources/BundleCache/bundles/sharedassets/9840e2c7221df235b13ed4e5bfe093c9
+- E:/UnityExample/CResources/BundleCache/bundles/sharedassets/9840e2c7221df235b13ed4e5bfe093c9

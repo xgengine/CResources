@@ -77,8 +77,7 @@ MonoBehaviour:
   m_RealOperateCount: 0
   m_Progresss: 0
   m_DeleteExporterFolder: 1
-  m_IsMoveManifest: 1
-  m_ExproterPath: assetbundles/cresouces
+  m_ExproterPath: assetbundles/cresources
 --- !u!114 &114978496894934046
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -15,7 +15,7 @@ namespace H3D.EditorCResources
         void IAssetModifier.Hanlde(List<AssetFile> input, out List<AssetFile> output)
         {
             output = input;
-            LogUtlity.m_LogTag = LogUtlity.LogTag.AssetModifier;
+            LogUtility.m_LogTag = LogUtility.LogTag.AssetModifier;
             RecordTime();
 
             List<string> needOperateObjects = new List<string>();
@@ -52,7 +52,7 @@ namespace H3D.EditorCResources
 
                 if (shader == null)
                 {
-                    LogUtlity.Log("[{0}]{1} Shader is Null ", "MaterialSplitAlphaModifier", matPath);
+                    LogUtility.Log("[{0}]{1} Shader is Null ", "MaterialSplitAlphaModifier", matPath);
                     continue;
                 }
 
@@ -60,7 +60,7 @@ namespace H3D.EditorCResources
 
                 if(shaderPath =="Resources/unity_builtin_extra")
                 {
-                    LogUtlity.LogError("[{0}]{1} Have No Alpha ETC1 Shader ", "MaterialSplitAlphaModifier", matPath);
+                    LogUtility.LogError("[{0}]{1} Have No Alpha ETC1 Shader ", "MaterialSplitAlphaModifier", matPath);
                     continue;
                 }
 
@@ -73,7 +73,7 @@ namespace H3D.EditorCResources
                     }
                     else
                     {
-                        LogUtlity.LogError("[{0}]{1} Have No Alpha ETC1 Shader ", "MaterialSplitAlphaModifier", matPath);
+                        LogUtility.LogError("[{0}]{1} Have No Alpha ETC1 Shader ", "MaterialSplitAlphaModifier", matPath);
                         continue;
                     }
                 }
@@ -91,7 +91,7 @@ namespace H3D.EditorCResources
 
                             if (tex == null)
                             {
-                                LogUtlity.LogError("{0} {1} Texture is Null", matPath, mainPropertyName);
+                                LogUtility.LogError("{0} {1} Texture is Null", matPath, mainPropertyName);
                                 continue;
                             }
                             string texPath = AssetDatabase.GetAssetPath(tex);
@@ -164,7 +164,7 @@ namespace H3D.EditorCResources
             AssetDatabase.ImportAsset(path);
             DestroyImmediate(texAlpha);
 
-            LogUtlity.Log("{0}", path);
+            LogUtility.Log("{0}", path);
         }
 
         private static bool HasTransparentPixels(Texture2D texture)
