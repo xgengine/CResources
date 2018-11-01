@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+
 namespace H3D.CResources
 {
     public class CResources
@@ -16,15 +18,20 @@ namespace H3D.CResources
             m_Locators = new List<IResourceLocator>();
 
             //m_Locators.Add(new LocalAssetCResourceLocator());
-            m_Locators.Add(new BundleAssetCResourceLocator());
+            m_Locators.Add( new BundleAssetCResourceLocator());
 
             m_ResouceProviders = new List<IResourceProvider>();
 
-            m_ResouceProviders.Add(new BundleAssetCResourceProvider());
+            m_ResouceProviders.Add(new CResourcePoolProvider( new BundleAssetCResourceProvider()));
             m_ResouceProviders.Add(new LocalBundleCResourceProvider());
 
            // m_ResouceProviders.Add(new LocalAssetCResourceProvider());
    
+        }
+
+        public static void UnloadUnusedAssets()
+        {
+            Resources.UnloadUnusedAssets();
         }
 
         public static TObject Load<TObject>(string requestID) where TObject : Object
@@ -44,8 +51,16 @@ namespace H3D.CResources
 
         internal static TObject ProvideResource<TObject>(IResourceLocation location) where TObject : Object
         {
-            IResourceProvider provider = GetResourceProvider<TObject>(location);
-            return provider.Provide<TObject>(location);
+            try
+            {
+                IResourceProvider provider = GetResourceProvider<TObject>(location);
+                return provider.Provide<TObject>(location);
+            }
+            catch (CResourcesException e)
+            {
+                LogUtility.LogError(e.Message);
+            }
+            return null;
         }
 
 
@@ -106,11 +121,11 @@ namespace H3D.CResources
         string ProviderId { get; }
 
         TObject Provide<TObject>(IResourceLocation location)
-        where TObject : UnityEngine.Object;
+        where TObject : Object;
 
 
         bool CanProvide<TObject>(IResourceLocation location)
-        where TObject : class;
+        where TObject : Object;
 
 
         bool Release(IResourceLocation location, object asset);
@@ -126,8 +141,7 @@ namespace H3D.CResources
             get { return GetType().FullName; }
         }
 
-        public virtual bool CanProvide<TObject>(IResourceLocation location)
-            where TObject : class
+        public virtual bool CanProvide<TObject>(IResourceLocation location)where TObject : Object
         {
             if (location == null)
                 throw new System.ArgumentException("IResourceLocation location cannot be null.");
@@ -152,6 +166,78 @@ namespace H3D.CResources
             return true;
         }
     }
+
+    public class CResourcePoolProvider : CResourceProvider
+    {
+
+        public class CResource
+        {
+            protected System.WeakReference m_Reference;
+
+            public Object Content
+            {
+                get
+                {
+                    return m_Reference.Target as Object;
+                }
+            }
+
+            public bool IsAlive
+            {
+                get
+                {
+                    return m_Reference.IsAlive;
+                }
+            }
+
+            public CResource( Object obj)
+            {
+                m_Reference =new  System.WeakReference(obj);
+            }
+        }
+
+
+        protected Dictionary<string, CResource> m_Cache = new Dictionary<string, CResource>();
+
+        protected IResourceProvider m_Provider;
+
+        public CResourcePoolProvider(IResourceProvider provider,int maxSize =0)
+        {
+            m_Provider = provider;
+        }
+
+        public override bool CanProvide<TObject>(IResourceLocation location) 
+        {
+            return m_Provider.CanProvide<TObject>(location);
+        }
+
+        public override TObject Provide<TObject>(IResourceLocation location) 
+        {
+            string key = location.InternalId;
+            if(m_Cache.ContainsKey(key))
+            {
+                CResource res = m_Cache[key];
+                if(res.IsAlive)
+                {
+                    return res.Content as TObject;
+                }
+                else
+                {
+                    m_Cache.Remove(key);
+                }
+            }
+
+            TObject result = m_Provider.Provide<TObject>(location);
+            m_Cache.Add(key, new CResource(result));
+            return result;
+        }
+
+        public bool Release(IResourceLocation location, object asset)
+        {
+            return true ;
+        }
+    }
+
 
     public class LocalBundleCResourceProvider  : CResourceProvider
     {
@@ -212,6 +298,7 @@ namespace H3D.CResources
             {
                 IResourceLocation bundleLocation = location.Dependencies[0];
                 AssetBundle bundle = CResources.ProvideResource<AssetBundle>(bundleLocation);
+                LogUtility.Log("Load asset from bundle "+location.InternalId);
                 return  bundle.LoadAsset<TObject>(Path.GetFileName(location.InternalId));
          
             }

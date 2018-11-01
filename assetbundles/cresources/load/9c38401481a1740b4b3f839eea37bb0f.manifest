@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 3518715082
+CRC: 3059587865
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: af2c171186898963a916baefad15d1d5
+    Hash: bcd5669b32b0876bc96b145f8a20c320
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 6f165f44e4778b6c9d85e7a145a54cb1
+    Hash: 6e91bf4d7bfc7c90eaa9aea5318d52d8
 HashAppended: 0
 ClassTypes:
 - Class: 21
@@ -17,5 +17,6 @@ ClassTypes:
   Script: {instanceID: 0}
 Assets:
 - Assets/CResources/New Material.mat
+- Assets/CResourcesSharedData/NGUI/Shaders/Transparent Alpha Colored_Alpha_ETC1.shader
 Dependencies:
-- E:/UnityExample/CResources/BundleCache/bundles/sharedassets/9840e2c7221df235b13ed4e5bfe093c9
+- C:/Users/14034/Desktop/UnityDemo/CResources/BundleCache/bundles/sharedassets/9840e2c7221df235b13ed4e5bfe093c9

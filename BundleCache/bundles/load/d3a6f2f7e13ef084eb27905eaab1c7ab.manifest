@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 3362331474
+CRC: 3000066840
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 80effe1b9ffc0ade994b28c67ba1647f
+    Hash: 54d5e070f0cd64995feed80a39a9524a
   TypeTreeHash:
     serializedVersion: 2
-    Hash: cf3f348e2267d190e6df40cbb42919b5
+    Hash: 73d501c0d19b494322c55b66f661cd01
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -16,8 +16,6 @@ ClassTypes:
 - Class: 21
   Script: {instanceID: 0}
 - Class: 23
-  Script: {instanceID: 0}
-- Class: 28
   Script: {instanceID: 0}
 - Class: 33
   Script: {instanceID: 0}
@@ -29,6 +27,7 @@ ClassTypes:
   Script: {instanceID: 0}
 Assets:
 - Assets/CResources/A/Cube.prefab
+- Assets/CResourcesSharedData/NGUI/Shaders/Unlit - Transparent Colored_Alpha_ETC1.shader
 - Assets/CResourcesSharedData/Materials/TankAlbedo2.mat
 Dependencies:
-- E:/UnityExample/CResources/BundleCache/bundles/sharedassets/9840e2c7221df235b13ed4e5bfe093c9
+- C:/Users/14034/Desktop/UnityDemo/CResources/BundleCache/bundles/sharedassets/9840e2c7221df235b13ed4e5bfe093c9
