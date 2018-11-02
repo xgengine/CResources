@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3716475181
+CRC: 354436568
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 1b8e5c9bb431dd6a959ede7518a383f5
+    Hash: 03598d9307a189da9f322e5a0de9efb1
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6f165f44e4778b6c9d85e7a145a54cb1
@@ -16,6 +16,6 @@ ClassTypes:
 - Class: 48
   Script: {instanceID: 0}
 Assets:
-- Assets/CResources/New Material.mat
+- Assets/CResourcesSharedData/Materials/TankAlbedo2.mat
 Dependencies:
 - E:/UnityExample/CResources/BundleCache/bundles/sharedassets/971b41fa47c2604c7930375b67846e7d
