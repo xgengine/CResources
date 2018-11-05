@@ -4,10 +4,7 @@ using UnityEngine;
 using H3D.CResources;
 public class CResourcesExample : MonoBehaviour
 {
-    private void Awake()
-    {
-        LogUtility.Log("awke");
-    }
+
     // Use this for initialization
     IEnumerator Start()
     {
@@ -16,15 +13,16 @@ public class CResourcesExample : MonoBehaviour
         GameObject obj = CResources.Instantiate(obj2);
 
 
+        GameObject request = CResources.CreateInstance<GameObject>("a/cube");
+
+        yield return request;
+        LogUtility.Log(request);
+        CResources.Destroy(obj2);
         CResources.Destroy(obj);
-
-
         yield break;
-
     }
     void Update()
     {
-
     }
 
     void OnGUI()
