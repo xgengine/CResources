@@ -8,17 +8,31 @@ public class CResourcesExample : MonoBehaviour
     // Use this for initialization
     IEnumerator Start()
     {
-        GameObject obj2 = CResources.Load<GameObject>("A/Cube");
-
-        GameObject obj = CResources.Instantiate(obj2);
 
 
-        GameObject request = CResources.CreateInstance<GameObject>("a/cube");
+        CResourceRequest<GameObject> request = CResources.LoadAsync<GameObject>("a/cube");
+        request.Completed += (op) =>
+        {
+            LogUtility.Log("MOJ " + request.Content);
 
-        yield return request;
-        LogUtility.Log(request);
-        CResources.Destroy(obj2);
-        CResources.Destroy(obj);
+            CResources.Destroy(request.Content);
+        };
+        //var request2 = CResources.LoadAsync<GameObject>("a/cube");
+        //request2.Completed += (p) =>
+        //{
+        //    LogUtility.Log("MOJ " + request2.Content);
+
+        //    CResources.Destroy(request2.Content);
+        //};
+
+        var request1  = CResources.Load<GameObject>("a/cube");
+        LogUtility.Log(request1.Content);
+        while(!request1.IsDone)
+        {
+            yield return null;
+        }
+        LogUtility.Log(request1.Content);
+  
         yield break;
     }
     void Update()
@@ -39,9 +53,8 @@ public class CResourcesExample : MonoBehaviour
 
             CResources.UnloadUnusedAssets().completed+=(p)=>
             {
-                GameObject obj2 = CResources.Load<GameObject>("A/Cube");
+                
 
-                LogUtility.Log(obj2);
             };
          
         }

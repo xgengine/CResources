@@ -8,6 +8,9 @@ using UnityEngine.SceneManagement;
 namespace H3D.CResources
 {
 
+
+
+
     public class CResourceRequestBase : CustomYieldInstruction
     {
         protected bool m_KeepWaiting = true;
@@ -22,20 +25,42 @@ namespace H3D.CResources
 
         public CResourceRequestBase Retain()
         {
+           
             m_RefCount++;
+            LogUtility.Log(m_Location.InternalId + "  +1 " + m_RefCount);
             return this;
         }
 
         public void Release()
         {
             m_RefCount--;
+            LogUtility.Log(m_Location.InternalId + " -1 " + m_RefCount);
+        }
+
+
+        protected bool m_IsDone= false;
+
+        public bool IsDone
+        {
+            get
+            {
+                return m_IsDone;
+            }
         }
 
         public bool IsAlive
         {
             get
             {
-                return m_Reference.IsAlive;
+                if (m_IsDone)
+                {
+                    return m_Reference.IsAlive;
+                }
+                else
+                {
+                    return true;
+                }
+               
             }
         }
 
@@ -53,8 +78,13 @@ namespace H3D.CResources
 
         public void SetContent(object obj)
         {
-
+            m_IsDone = true;
+            if(m_Reference != null && m_Reference.Target !=null)
+            {
+                return;
+            }
             m_Reference = new System.WeakReference(obj);
+
         }
 
         protected IResourceLocation m_Location;
@@ -75,12 +105,37 @@ namespace H3D.CResources
             {
                 Completed(this);
             }
+
+        }
+    
+        protected virtual void LoadingInternal()
+        {  
+            
+        }
+        public void LoadImmediate()
+        {
+            LoadingInternal();
+        
         }
     }
 
     public class CResourceRequest<T> : CResourceRequestBase where T : class
     {
-
+        public T Content
+        {
+            get
+            {
+                if(m_Reference !=null)
+                {
+                    return m_Reference.Target as T;
+                }
+                else
+                {
+                    return null;
+                }
+               
+            }
+        }
         public CResourceRequest<T> SendRequestAsync(IResourceLocation location)
         {
             m_Location = location;
@@ -98,13 +153,16 @@ namespace H3D.CResources
         protected virtual IEnumerator LoadingAsyncInternal()
         {
             Notify();
+            m_IsDone = true;
             m_KeepWaiting = false;
+  
             yield break;           
         }
 
-        protected virtual void LoadingInternal()
+        protected  override void LoadingInternal()
         {
             Notify();
+            m_IsDone = true;
             m_KeepWaiting = false;
         }
     
@@ -135,6 +193,7 @@ namespace H3D.CResources
 
             yield return request;
 
+ 
             SetContent(request.assetBundle as T);
 
             yield return base.LoadingAsyncInternal();
@@ -166,12 +225,12 @@ namespace H3D.CResources
                 IResourceLocation bundleLocation = m_Location.Dependencies[0];
                 CResourceRequest<AssetBundle> request = CResources.LoadAsync<AssetBundle>(bundleLocation);
 
-                LogUtility.Log("Load asset from bundle " + m_Location.InternalId);
+               
 
                 yield return request;
 
                 AssetBundle bundle = request.Content as AssetBundle;
-
+                LogUtility.Log("Load asset from bundle " + m_Location.InternalId);
                 AssetBundleRequest assetRequest = bundle.LoadAssetAsync(Path.GetFileName(m_Location.InternalId), typeof(T));
 
                 yield return assetRequest;
@@ -197,6 +256,8 @@ namespace H3D.CResources
             }
             base.LoadingInternal();
         }
+
+    
     }
 
     public class CResources
@@ -258,11 +319,11 @@ namespace H3D.CResources
             LogUtility.Log("[UnloadUnusedAssetsInternal ] is Done use time {0}", (Time.realtimeSinceStartup - t));
         }
 
-        public static T Load<T>(string requestID) where T : class
+        public static CResourceRequest<T> Load<T>(string requestID) where T : class
         {
             IResourceLocation location = Locate<T>(requestID);
             CResourceRequest<T> request = Load<T>(location);
-            return request.Content as T;       
+            return request;       
         }
 
         public static CResourceRequest<T> LoadAsync<T>(string requestID) where T:class
@@ -271,15 +332,31 @@ namespace H3D.CResources
             return LoadAsync<T>(location);
         }
 
-        public static T CreateInstance<T>(string requestID) where T:class
+        public static CResourceRequest<T> CreateInstance<T>(string requestID) where T:class
         {
             IResourceLocation location = Locate<T>(requestID);
             CResourceRequest<T> request = Load<T>(location);
             T asset = request.Content as T;
             T instance = Instantiate<T>(asset);
             Release<T>(location, asset);
-            return instance;
+            return request;
         }
+        public static CResourceRequest<T> CreateInstanceAsync<T>(string requestID) where T : class
+        {
+            CResourceRequest<T> requestInstance = new CResourceRequest<T>();
+            IResourceLocation location = Locate<T>(requestID);
+            CResourceRequest<T> request = LoadAsync<T>(location);
+            request.Completed += (p) =>
+            {
+                Debug.Log(p.Content);
+                T asset = p.Content as T;
+                T instance = Instantiate<T>(asset);
+                Release<T>(location, asset);
+                requestInstance.SetContent(instance);
+            };          
+            return requestInstance;
+        }
+
 
         public static void Destroy(object obj)
         {
@@ -396,7 +473,12 @@ namespace H3D.CResources
                     if (!m_LoadedCResources.ContainsKey(key))
                     {
                         m_LoadedCResources.Add(key, location);
-                        m_Resouces.Add(key,new System.WeakReference(asset));
+                     
+                       
+                    }
+                    if (!m_Resouces.ContainsKey(key))
+                    {
+                         m_Resouces.Add(key,new System.WeakReference(asset));
                     }
                 }
             }
@@ -631,9 +713,10 @@ namespace H3D.CResources
             if(m_Cache.ContainsKey(key))
             {
                 CResourceRequestBase  res = m_Cache[key];
-                if(res.IsAlive)
-                {                   
-                   return res.Retain() as CResourceRequest<T>;
+                if(res.IsAlive )
+                {   
+                    return res.Retain() as CResourceRequest<T>;
+
                 }
                 else
                 {
@@ -696,7 +779,8 @@ namespace H3D.CResources
                 {
                     LogUtility.Log("[CResources.UnloadUnusedAssets]{0}  {1}", request.Location.InternalId, request.IsAlive);
                     if (request.IsAlive == false)
-                    {              
+                    {
+                        request.m_RefCount =1;
                         assetsNeedRemove.Add(request);
                         assetsNotAlive.Add(item.Key);
                     }
@@ -706,11 +790,6 @@ namespace H3D.CResources
             for(int i =0;i<assetsNeedRemove.Count;i++)
             {
                 CResources.Release<object>(assetsNeedRemove[i].Location, null);
-            }
-       
-            for (int i =0;i<assetsNotAlive.Count;i++)
-            {
-                m_Cache.Remove(assetsNotAlive[i]);
             }
         }
     }
