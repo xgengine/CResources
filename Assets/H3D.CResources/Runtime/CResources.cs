@@ -628,6 +628,10 @@ namespace H3D.CResources
         IList<IResourceLocation> Dependencies { get; }
 
         bool HasDependencies { get; }
+
+        void Retain();
+        void Release();
+        int RefCount { get; }
     }
 
     public interface IResourceProvider
@@ -709,6 +713,7 @@ namespace H3D.CResources
 
         public override CResourceRequest<T> Provide<T>(IResourceLocation location) 
         {
+            location.Retain();
             int key = location.GetHashCode();
             if(m_Cache.ContainsKey(key))
             {
@@ -731,6 +736,7 @@ namespace H3D.CResources
 
         public override CResourceRequest<T> ProvideAsync<T>(IResourceLocation location)
         {
+            location.Retain();
             int key = location.GetHashCode();
             if (m_Cache.ContainsKey(key))
             {
@@ -757,8 +763,8 @@ namespace H3D.CResources
             if (m_Cache.ContainsKey(key))
             {
                 CResourceRequestBase  request = m_Cache[key];
-                request.Release();
-                if(request.m_RefCount == 0)
+                location.Release();
+                if(location.RefCount == 0)
                 {
                     m_Cache.Remove(key);
                     m_Provider.Release(location, request.Content);           
@@ -831,6 +837,7 @@ namespace H3D.CResources
         public override CResourceRequest<T> Provide<T>(IResourceLocation location)
         {
             CResouceBundleAssetRequest<T> request = new CResouceBundleAssetRequest<T>();
+
             return request.SendRequest(location);
         }
 
@@ -896,6 +903,11 @@ namespace H3D.CResources
         public string ProviderId { get { return m_providerId; } }
         public IList<IResourceLocation> Dependencies { get { return m_dependencies; } }
         public bool HasDependencies { get { return m_dependencies != null && m_dependencies.Count > 0; } }
+
+
+
+
+
         public BundleAssetCResourceLocation(string id, string providerId, params IResourceLocation[] dependencies)
         {
             if (string.IsNullOrEmpty(id))
@@ -914,6 +926,25 @@ namespace H3D.CResources
         {
             return m_providerId.GetHashCode();
         }
+
+        public void Retain()
+        {
+            m_RefCount++;
+        }
+
+        public void Release()
+        {
+            m_RefCount--;
+        }
+        int m_RefCount = 0;
+        public int RefCount
+        {
+            get
+            {
+               return m_RefCount;
+            }
+        }
+           
     }
 
     public class BundleCResourceLocation:IResourceLocation
@@ -939,6 +970,32 @@ namespace H3D.CResources
         {
             m_dependencies = new List<IResourceLocation>(dependencies);
         }
+
+        public void Retain()
+        {
+            m_RefCount++;
+            foreach(var item in m_dependencies)
+            {
+                item.Retain();
+            }
+        }
+
+        public void Release()
+        {
+            m_RefCount--;
+            foreach(var item in m_dependencies)
+            {
+                item.Release();
+            }
+        }
+        int m_RefCount = 0;
+        public int RefCount
+        {
+            get
+            {
+                return m_RefCount;
+            }
+        }
     }
 
 #if UNITY_EDITOR
@@ -959,6 +1016,31 @@ namespace H3D.CResources
                 throw new System.ArgumentNullException(providerId);
             m_InternalId = internalId;
             m_ProviderId = providerId;
+        }
+        public void Retain()
+        {
+            m_RefCount++;
+            foreach (var item in Dependencies)
+            {
+                item.Retain();
+            }
+        }
+
+        public void Release()
+        {
+            m_RefCount--;
+            foreach (var item in Dependencies)
+            {
+                item.Release();
+            }
+        }
+        int m_RefCount = 0;
+        public int RefCount
+        {
+            get
+            {
+                return m_RefCount;
+            }
         }
     }
 #endif
