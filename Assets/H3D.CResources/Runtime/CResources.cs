@@ -8,9 +8,6 @@ using UnityEngine.SceneManagement;
 namespace H3D.CResources
 {
 
-
-
-
     public class CResourceRequestBase : CustomYieldInstruction
     {
         protected bool m_KeepWaiting = true;
@@ -27,14 +24,14 @@ namespace H3D.CResources
         {
            
             m_RefCount++;
-            LogUtility.Log(m_Location.InternalId + "  +1 " + m_RefCount);
+            //LogUtility.Log("[RefCount] [{0}] [Retain] [{1}]", m_RefCount,m_Location.InternalId );
             return this;
         }
 
         public void Release()
         {
             m_RefCount--;
-            LogUtility.Log(m_Location.InternalId + " -1 " + m_RefCount);
+           // LogUtility.Log("[RefCount] [{0}] [Release]  [{1}]", m_RefCount, m_Location.InternalId); ;
         }
 
 
@@ -97,17 +94,6 @@ namespace H3D.CResources
             }
         }
 
-        public event System.Action<CResourceRequestBase> Completed;
-
-        public void Notify()
-        {
-            if(Completed !=null)
-            {
-                Completed(this);
-            }
-
-        }
-    
         protected virtual void LoadingInternal()
         {  
             
@@ -117,11 +103,54 @@ namespace H3D.CResources
             LoadingInternal();
         
         }
+        protected List<CResourceRequest<object>> m_DepOperations;
     }
 
     public class CResourceRequest<T> : CResourceRequestBase where T : class
     {
-        public T Content
+        List<System.Action<CResourceRequest<T>>> m_CompletedAction;
+        public event System.Action<CResourceRequest<T>> Completed
+        {
+            add
+            {
+                if(IsDone)
+                {
+                   value(this);
+                }
+                else
+                {
+                    if (m_CompletedAction == null)
+                        m_CompletedAction = new List<System.Action<CResourceRequest<T>>>();
+                    m_CompletedAction.Add(value);
+                }
+            }
+            remove
+            {
+                m_CompletedAction.Remove(value);
+            }
+        }
+
+        public void InvokeCompletionEvent()
+        {
+            if (m_CompletedAction != null)
+            {
+                for (int i = 0; i < m_CompletedAction.Count; i++)
+                {
+                    try
+                    {
+                        m_CompletedAction[i](this);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogException(e);
+                      
+                    }
+                }
+                m_CompletedAction.Clear();
+            }
+        }
+
+        new public T Content
         {
             get
             {
@@ -136,32 +165,41 @@ namespace H3D.CResources
                
             }
         }
-        public CResourceRequest<T> SendRequestAsync(IResourceLocation location)
+        public CResourceRequest<T> SendRequestAsync(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation)
         {
             m_Location = location;
+            m_DepOperations = loadDependencyOperation;
             TaskManager.Instance.StartTask(LoadingAsyncInternal());
             return this;
         }
 
-        public CResourceRequest<T> SendRequest(IResourceLocation location)
+        public CResourceRequest<T> SendRequest(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation)
         {
             m_Location = location;
+            m_DepOperations = loadDependencyOperation;
             LoadingInternal();
             return this;
         }
 
-        protected virtual IEnumerator LoadingAsyncInternal()
+        protected IEnumerator LoadingAsyncInternal()
         {
-            Notify();
+            yield return LoadingAsync();
             m_IsDone = true;
             m_KeepWaiting = false;
-  
+            InvokeCompletionEvent();
             yield break;           
         }
-
+        protected virtual IEnumerator LoadingAsync()
+        {
+            yield break;
+        }
+        protected virtual void Loading()
+        {
+          
+        }
         protected  override void LoadingInternal()
         {
-            Notify();
+            Loading();
             m_IsDone = true;
             m_KeepWaiting = false;
         }
@@ -170,99 +208,67 @@ namespace H3D.CResources
 
     public class CResourceBundleCreateRequest<T> : CResourceRequest<T> where T : class
     {
-        protected override IEnumerator LoadingAsyncInternal()
+        protected override IEnumerator LoadingAsync()
         {
-            List<CResourceRequest<AssetBundle>> depRequests = new List<CResourceRequest<AssetBundle>>();
-
-            if (m_Location.HasDependencies)
+            foreach (var dp in m_DepOperations)
             {
-                for (int i = 0; i < m_Location.Dependencies.Count; i++)
+                if(dp.IsDone ==false)
                 {
-                    depRequests.Add(CResources.LoadAsync<AssetBundle>(m_Location.Dependencies[i]));
+                    yield return dp;
                 }
             }
-
-            for (int i = 0; i < depRequests.Count; i++)
+            if (IsDone==false)
             {
-                yield return depRequests[i];
-            }
-
-            LogUtility.Log("[Load bundle] " + m_Location.InternalId);
-
-            AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(Path.Combine(Path.GetDirectoryName(Application.dataPath), "assetbundles/cresources/" + m_Location.InternalId));
-
-            yield return request;
-
- 
-            SetContent(request.assetBundle as T);
-
-            yield return base.LoadingAsyncInternal();
+            
+                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(Path.Combine(Path.GetDirectoryName(Application.dataPath), "assetbundles/cresources/" + m_Location.InternalId));
+                yield return request;
+                //LogUtility.Log("[Load bundle async][{0}][{1}] [{2}]", m_Location.InternalId, request.assetBundle == null ? "NULL" : request.assetBundle.ToString(), Time.frameCount);
+                SetContent(request.assetBundle as T);              
+            }       
         }
 
-        protected override void LoadingInternal()
+        protected override void Loading()
         {
-            if (m_Location.HasDependencies)
-            {
-                for (int i = 0; i < m_Location.Dependencies.Count; i++)
-                {
-                    CResources.Load<AssetBundle>(m_Location.Dependencies[i]);
-                }
-            }
             AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Application.dataPath), "assetbundles/cresources/" + m_Location.InternalId));
-            LogUtility.Log("[Load bundle] " + m_Location.InternalId);
+            //LogUtility.Log("[Load bundle sync] " + m_Location.InternalId);
             SetContent(bundle as T);
-
-            base.LoadingInternal();
         }
     }
 
     public class CResouceBundleAssetRequest<T> : CResourceRequest<T> where T : class
     {
-        protected override IEnumerator LoadingAsyncInternal()
+        protected override IEnumerator LoadingAsync()
         {
-            if (m_Location.HasDependencies)
+            foreach(var dp in m_DepOperations)
             {
-                IResourceLocation bundleLocation = m_Location.Dependencies[0];
-                CResourceRequest<AssetBundle> request = CResources.LoadAsync<AssetBundle>(bundleLocation);
-
-               
-
-                yield return request;
-
-                AssetBundle bundle = request.Content as AssetBundle;
-                LogUtility.Log("Load asset from bundle " + m_Location.InternalId);
+                if(dp.IsDone == false)
+                {
+                    yield return dp;
+                }
+            }
+            if(IsDone == false)
+            {
+                AssetBundle bundle = m_DepOperations[0].Content as AssetBundle;
                 AssetBundleRequest assetRequest = bundle.LoadAssetAsync(Path.GetFileName(m_Location.InternalId), typeof(T));
-
                 yield return assetRequest;
-
+                LogUtility.Log("Load asset from bundle async " + m_Location.InternalId);
                 SetContent(assetRequest.asset as T);
-            }
-            yield return base.LoadingAsyncInternal();
+            }                
         }
-        protected override void LoadingInternal()
+
+        protected override void Loading()
         {
-            if (m_Location.HasDependencies)
-            {
-                IResourceLocation bundleLocation = m_Location.Dependencies[0];
-                CResourceRequest<AssetBundle> request = CResources.Load<AssetBundle>(bundleLocation);
-
-                LogUtility.Log("Load asset from bundle " + m_Location.InternalId);
-
-                AssetBundle bundle = request.Content as AssetBundle;
-
-                Object asset = bundle.LoadAsset(Path.GetFileName(m_Location.InternalId), typeof(T));
-
-                SetContent(asset as T);
-            }
-            base.LoadingInternal();
+            LogUtility.Log("Load asset from bundle sync " + m_Location.InternalId);
+            AssetBundle bundle = m_DepOperations[0].Content as AssetBundle;
+            Object asset = bundle.LoadAsset(Path.GetFileName(m_Location.InternalId), typeof(T));
+            SetContent(asset as T);
         }
-
     
     }
 
     public class CResources
     {
-        static CResourcesLoadRecorder m_LoadRecorder;
+        static MapLocator m_MapLocator;
 
         static List<IResourceLocator> m_Locators;
 
@@ -275,7 +281,7 @@ namespace H3D.CResources
         [RuntimeInitializeOnLoadMethod]
         private static void RuntimeInitialization()
         {
-            m_LoadRecorder = new CResourcesLoadRecorder();
+            m_MapLocator = new MapLocator();
 
             m_Locators = new List<IResourceLocator>();
 
@@ -284,7 +290,7 @@ namespace H3D.CResources
 
             m_ResouceProviders = new List<IResourceProvider>();
 
-            m_ResouceProviders.Add(new CResourcePoolProvider(new BundleAssetCResourceProvider()));
+            m_ResouceProviders.Add(new BundleAssetCResourceProvider());
             m_ResouceProviders.Add(new CResourcePoolProvider(new LocalBundleCResourceProvider()));
 
             // m_ResouceProviders.Add(new LocalAssetCResourceProvider());
@@ -315,7 +321,7 @@ namespace H3D.CResources
                 IResourceProvider provider = m_ResouceProviders[i];
                 provider.UnloadUnusedAssets();
             }
-            m_LoadRecorder.UnloadUnusedAssets();
+            m_MapLocator.UnloadUnusedAssets();
             LogUtility.Log("[UnloadUnusedAssetsInternal ] is Done use time {0}", (Time.realtimeSinceStartup - t));
         }
 
@@ -341,6 +347,7 @@ namespace H3D.CResources
             Release<T>(location, asset);
             return request;
         }
+
         public static CResourceRequest<T> CreateInstanceAsync<T>(string requestID) where T : class
         {
             CResourceRequest<T> requestInstance = new CResourceRequest<T>();
@@ -357,16 +364,15 @@ namespace H3D.CResources
             return requestInstance;
         }
 
-
         public static void Destroy(object obj)
         {
-            IResourceLocation location = m_LoadRecorder.LocateResource(obj);
+            IResourceLocation location = m_MapLocator.Locate(obj);
             if (location != null)
             {
                 Release<object>(location, obj);
-                if (m_LoadRecorder.IsInstance(obj))
+                if (m_MapLocator.IsInstance(obj))
                 {
-                    m_LoadRecorder.RemoveInstance(obj);
+                    m_MapLocator.RemoveInstance(obj);
                     Object.Destroy(obj as Object);
                 }
             }
@@ -378,12 +384,12 @@ namespace H3D.CResources
 
         internal static T Instantiate<T>(T obj) where T :class
         {
-            IResourceLocation location = m_LoadRecorder.LocateResource(obj);
+            IResourceLocation location = m_MapLocator.Locate(obj);
             if (location != null)
             {
                 CResourceRequest<T> request = Load<T>(location);
                 Object instance = Object.Instantiate(request.Content as Object);
-                m_LoadRecorder.RecordInstance(request.Content, instance);
+                m_MapLocator.RecordInstance(request.Content, instance);
                 return instance as T;
             }
             return null;
@@ -392,33 +398,52 @@ namespace H3D.CResources
         internal static CResourceRequest<T> Load<T>(IResourceLocation location) where T : class
         {
             IResourceProvider provider = GetResourceProvider<T>(location);
-            CResourceRequest<T> request= provider.Provide<T>(location);
-            m_LoadRecorder.RecordResource(location,request);
+            CResourceRequest<T> request= provider.Provide<T>(location, LoadDependencies(location));
+            m_MapLocator.RecordResource(location,request);
             return request;
+        }
+
+        internal static List<CResourceRequest<object>> LoadDependencies(IResourceLocation location)
+        {
+            List<CResourceRequest<object>> requests = new List<CResourceRequest<object>>();
+            foreach(var depLocation in location.Dependencies)
+            {
+                 requests.Add(Load<object>(depLocation));
+            }     
+            return requests;
+        }
+
+        internal static List<CResourceRequest<object>> LoadDependenciesAsync(IResourceLocation location)
+        {
+            List<CResourceRequest<object>> requests = new List<CResourceRequest<object>>();
+            foreach (var depLocation in location.Dependencies)
+            {
+                requests.Add(LoadAsync<object>(depLocation));
+            }
+            return requests;
         }
 
         internal static CResourceRequest<T> LoadAsync<T>(IResourceLocation location) where T : class
         { 
             IResourceProvider provider = GetResourceProvider<T>(location);
-            CResourceRequest<T> request = provider.ProvideAsync<T>(location);
-            m_LoadRecorder.RecordResource(location,request);
+            CResourceRequest<T> request = provider.ProvideAsync<T>(location,LoadDependenciesAsync(location));
+            m_MapLocator.RecordResource(location,request);
             return request;        
         }
 
         internal static void Release<T>(IResourceLocation location,object asset) where T:class
         {
             IResourceProvider provider = GetResourceProvider<T>(location);
-            int key = CResourcesLoadRecorder.GetInstanceID(asset);
+            int key = MapLocator.GetInstanceID(asset);
             if(provider.Release(location, asset))
             {
-                m_LoadRecorder.RemoveResource(key);
-                if(location.HasDependencies)
+                m_MapLocator.RemoveResource(key);            
+            }
+            if (location.HasDependencies)
+            {
+                for (int i = 0; i < location.Dependencies.Count; i++)
                 {
-                    for(int i =0;i<location.Dependencies.Count;i++)
-                    {
-                        Release<object>(location.Dependencies[i], null);
-                    }
-                    
+                    Release<object>(location.Dependencies[i], null);
                 }
             }
         }
@@ -450,17 +475,17 @@ namespace H3D.CResources
             throw  new UnknownResourceProviderException(location);
         }
 
-        internal class CResourcesLoadRecorder
+        internal class MapLocator
         {
-            internal Dictionary<int, IResourceLocation> m_LoadedCResources = new Dictionary<int, IResourceLocation>();
+            internal Dictionary<int, IResourceLocation> m_AssetInstanceID2LocationMap = new Dictionary<int, IResourceLocation>();
 
-            internal Dictionary<int, int> m_InstanceResources = new Dictionary<int, int>();
+            internal Dictionary<int, int> m_InstanceID2AssetIDMap= new Dictionary<int, int>();
 
-            internal Dictionary<int,System.WeakReference> m_Instances = new Dictionary<int ,System.WeakReference> ();
+            internal Dictionary<int,System.WeakReference> m_InstanceID2InstanceMap= new Dictionary<int ,System.WeakReference> ();
 
-            internal Dictionary<int, System.WeakReference> m_Resouces = new Dictionary<int, System.WeakReference>();
+            internal Dictionary<int, System.WeakReference> m_AssetInstanceID2AssetsMap = new Dictionary<int, System.WeakReference>();
 
-            internal void RecordResource(IResourceLocation location, object asset)
+            internal void RecordAsset(IResourceLocation location, object asset)
             {
                 if (asset == null || location == null)
                 {
@@ -470,44 +495,42 @@ namespace H3D.CResources
                 int key = GetInstanceID(asset);
                 if (key != -1)
                 {
-                    if (!m_LoadedCResources.ContainsKey(key))
+                    if (!m_AssetInstanceID2LocationMap.ContainsKey(key))
                     {
-                        m_LoadedCResources.Add(key, location);
-                     
-                       
+                        m_AssetInstanceID2LocationMap.Add(key, location);      
                     }
-                    if (!m_Resouces.ContainsKey(key))
+                    if (!m_AssetInstanceID2AssetsMap.ContainsKey(key))
                     {
-                         m_Resouces.Add(key,new System.WeakReference(asset));
+                        m_AssetInstanceID2AssetsMap.Add(key, new System.WeakReference(asset));
                     }
                 }
             }
 
             internal void RecordResource<T>(IResourceLocation location, CResourceRequest<T> request) where T:class
             {
-                if(request.keepWaiting)
+                if(!request.IsDone)
                 {
-                    request.Completed += (re) =>
+                    request.Completed += (op) =>
                     {
-                        RecordResource(location, re.Content);
+                        RecordAsset(location, op.Content);
                     };
                 }
                 else
                 {
-                    RecordResource(location, request.Content);
+                    RecordAsset(location, request.Content);
                 }               
             }
 
-            internal IResourceLocation LocateResource(object asset)
+            internal IResourceLocation Locate(object asset)
             {
                 int key = GetInstanceID(asset);
-                if(m_LoadedCResources.ContainsKey(key))
+                if(m_AssetInstanceID2LocationMap.ContainsKey(key))
                 {
-                    return m_LoadedCResources[key];
+                    return m_AssetInstanceID2LocationMap[key];
                 }
-                else if(m_InstanceResources.ContainsKey(key))
+                else if(m_InstanceID2AssetIDMap.ContainsKey(key))
                 {
-                    return m_LoadedCResources[m_InstanceResources[key]];
+                    return m_AssetInstanceID2LocationMap[m_InstanceID2AssetIDMap[key]];
                 }
                 return null;
             }
@@ -520,27 +543,27 @@ namespace H3D.CResources
                     return;
                 }
                 int instanceID = GetInstanceID(instance);
-                m_Instances.Add(instanceID,new System.WeakReference(asset));               
-                m_InstanceResources.Add(instanceID, GetInstanceID(asset));
+                m_InstanceID2InstanceMap.Add(instanceID,new System.WeakReference(asset));
+                m_InstanceID2AssetIDMap.Add(instanceID, GetInstanceID(asset));
             }
 
             internal bool IsInstance(object asset)
             {
-                return m_InstanceResources.ContainsKey(GetInstanceID(asset));
+                return m_InstanceID2AssetIDMap.ContainsKey(GetInstanceID(asset));
             }
 
             internal bool IsAsset(object asset)
             {
-                return m_LoadedCResources.ContainsKey(GetInstanceID(asset));
+                return m_AssetInstanceID2LocationMap.ContainsKey(GetInstanceID(asset));
             }
 
             internal bool RemoveResource(int key)
             {
                 if (key != -1)
                 {
-                    if (m_LoadedCResources.ContainsKey(key))
+                    if (m_AssetInstanceID2LocationMap.ContainsKey(key))
                     {
-                        m_LoadedCResources.Remove(key);
+                        m_AssetInstanceID2LocationMap.Remove(key);
                         return true;
                     }
                   
@@ -551,9 +574,9 @@ namespace H3D.CResources
             internal bool RemoveInstance(object asset)
             {
                 int key = GetInstanceID(asset);
-                if (m_InstanceResources.ContainsKey(key))
+                if (m_AssetInstanceID2LocationMap.ContainsKey(key))
                 {
-                    m_InstanceResources.Remove(key);
+                    m_AssetInstanceID2LocationMap.Remove(key);
                     return true;
                 }
                 return false;
@@ -582,32 +605,32 @@ namespace H3D.CResources
 
             public void UnloadUnusedAssets()
             {
-                List<int> needMoves = new List<int>();
-                foreach(var item in m_Instances)
-                {
-                    if(item.Value.IsAlive ==false)
-                    {
-                        needMoves.Add(item.Key);
-                    }
-                }
-                for(int i =0;i<needMoves.Count;i++)
-                {
-                    m_InstanceResources.Remove(needMoves[i]);
-                    m_Instances.Remove(needMoves[i]);
-                }
-                List<int> needreMoves = new List<int>();
-                foreach (var item in m_Resouces)
-                {
-                    if (item.Value.IsAlive == false)
-                    {
-                        needreMoves.Add(item.Key);
-                    }
-                }
-                for (int i = 0; i < needreMoves.Count; i++)
-                {
-                    m_LoadedCResources.Remove(needreMoves[i]);
-                    m_Resouces.Remove(needreMoves[i]);
-                }   
+                //List<int> needMoves = new List<int>();
+                //foreach(var item in m_InstanceID2InstanceMap)
+                //{
+                //    if(item.Value.IsAlive ==false)
+                //    {
+                //        needMoves.Add(item.Key);
+                //    }
+                //}
+                //for(int i =0;i<needMoves.Count;i++)
+                //{
+                //    m_InstanceResources.Remove(needMoves[i]);
+                //    m_Instances.Remove(needMoves[i]);
+                //}
+                //List<int> needreMoves = new List<int>();
+                //foreach (var item in m_Assets)
+                //{
+                //    if (item.Value.IsAlive == false)
+                //    {
+                //        needreMoves.Add(item.Key);
+                //    }
+                //}
+                //for (int i = 0; i < needreMoves.Count; i++)
+                //{
+                //    m_LoadedCResources.Remove(needreMoves[i]);
+                //    m_Assets.Remove(needreMoves[i]);
+                //}   
             }
         }
     }
@@ -629,9 +652,7 @@ namespace H3D.CResources
 
         bool HasDependencies { get; }
 
-        void Retain();
-        void Release();
-        int RefCount { get; }
+       
     }
 
     public interface IResourceProvider
@@ -639,11 +660,11 @@ namespace H3D.CResources
 
         string ProviderId { get; }
 
-        CResourceRequest<T> Provide<T>(IResourceLocation location)
+        CResourceRequest<T> Provide<T>(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation)
         where T : class;
 
 
-        CResourceRequest<T> ProvideAsync<T>(IResourceLocation location)
+        CResourceRequest<T> ProvideAsync<T>(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation)
         where T : class;
 
         bool CanProvide<T>(IResourceLocation location)
@@ -675,9 +696,9 @@ namespace H3D.CResources
             return string.Format("[{0}]", ProviderId);
         }
 
-        public abstract CResourceRequest<T> Provide<T>(IResourceLocation location) where T : class;
+        public abstract CResourceRequest<T> Provide<T>(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation) where T : class;
 
-        public abstract CResourceRequest<T> ProvideAsync<T>(IResourceLocation location) where T : class;
+        public abstract CResourceRequest<T> ProvideAsync<T>(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation) where T : class;
     
         public virtual void UnloadUnusedAssets()
         {
@@ -711,17 +732,22 @@ namespace H3D.CResources
             return m_Provider.CanProvide<T>(location);
         }
 
-        public override CResourceRequest<T> Provide<T>(IResourceLocation location) 
+        public override CResourceRequest<T> Provide<T>(IResourceLocation location , List<CResourceRequest<object>> loadDependencyOperation) 
         {
-            location.Retain();
+     
             int key = location.GetHashCode();
             if(m_Cache.ContainsKey(key))
             {
                 CResourceRequestBase  res = m_Cache[key];
                 if(res.IsAlive )
-                {   
-                    return res.Retain() as CResourceRequest<T>;
-
+                {
+                    res.Retain();
+                    if (res.IsDone ==false)
+                    {
+                       
+                        res.LoadImmediate();
+                    }
+                    return res as CResourceRequest<T>;
                 }
                 else
                 {
@@ -729,14 +755,14 @@ namespace H3D.CResources
                     m_Cache.Remove(key);
                 }                  
             }
-            CResourceRequest<T> request = m_Provider.Provide<T>(location).Retain() as CResourceRequest<T>;
+            CResourceRequest<T> request = m_Provider.Provide<T>(location,loadDependencyOperation).Retain() as CResourceRequest<T>;
             m_Cache.Add(key, request);               
             return request;
         }
 
-        public override CResourceRequest<T> ProvideAsync<T>(IResourceLocation location)
+        public override CResourceRequest<T> ProvideAsync<T>(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation)
         {
-            location.Retain();
+     
             int key = location.GetHashCode();
             if (m_Cache.ContainsKey(key))
             {
@@ -751,23 +777,22 @@ namespace H3D.CResources
                     m_Cache.Remove(key);
                 }
             }
-            CResourceRequest<T> request = m_Provider.ProvideAsync<T>(location).Retain() as CResourceRequest<T>;
+            CResourceRequest<T> request = m_Provider.ProvideAsync<T>(location,loadDependencyOperation).Retain() as CResourceRequest<T>;
             m_Cache.Add(key, request);
             return request; ;
         }
 
         public override bool Release(IResourceLocation location, object asset)
         {
-            int key = location.GetHashCode();
-          
+            int key = location.GetHashCode();   
             if (m_Cache.ContainsKey(key))
             {
-                CResourceRequestBase  request = m_Cache[key];
-                location.Release();
-                if(location.RefCount == 0)
-                {
-                    m_Cache.Remove(key);
-                    m_Provider.Release(location, request.Content);           
+                CResourceRequestBase request = m_Cache[key];
+                request.Release();
+                if (request.m_RefCount == 0)
+                {           
+                    m_Provider.Release(location, request.Content);
+                    m_Cache.Remove(key);                         
                     return true;
                 }        
             }
@@ -776,42 +801,42 @@ namespace H3D.CResources
 
         public override void UnloadUnusedAssets()
         {
-            List<int> assetsNotAlive = new List<int>();
-            List<CResourceRequestBase> assetsNeedRemove = new List<CResourceRequestBase>();
-            foreach (var item in m_Cache)
-            {
-                CResourceRequestBase request = item.Value;
-                if(request !=null)
-                {
-                    LogUtility.Log("[CResources.UnloadUnusedAssets]{0}  {1}", request.Location.InternalId, request.IsAlive);
-                    if (request.IsAlive == false)
-                    {
-                        request.m_RefCount =1;
-                        assetsNeedRemove.Add(request);
-                        assetsNotAlive.Add(item.Key);
-                    }
-                }       
-            }
+            //List<int> assetsNotAlive = new List<int>();
+            //List<CResourceRequestBase> assetsNeedRemove = new List<CResourceRequestBase>();
+            //foreach (var item in m_Cache)
+            //{
+            //    CResourceRequestBase request = item.Value;
+            //    if (request != null)
+            //    {
+            //        LogUtility.Log("[CResources.UnloadUnusedAssets]{0}  {1}", request.Location.InternalId, request.IsAlive);
+            //        if (request.IsAlive == false)
+            //        {
+            //            request.m_RefCount = 1;
+            //            assetsNeedRemove.Add(request);
+            //            assetsNotAlive.Add(item.Key);
+            //        }
+            //    }
+            //}
 
-            for(int i =0;i<assetsNeedRemove.Count;i++)
-            {
-                CResources.Release<object>(assetsNeedRemove[i].Location, null);
-            }
+            //for (int i = 0; i < assetsNeedRemove.Count; i++)
+            //{
+            //    CResources.Release<object>(assetsNeedRemove[i].Location, null);
+            //}
         }
     }
 
     public class LocalBundleCResourceProvider  : CResourceProvider
     {
-        public override CResourceRequest<T> Provide<T>(IResourceLocation location)
+        public override CResourceRequest<T> Provide<T>(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation)
         {
             CResourceBundleCreateRequest<T> request = new CResourceBundleCreateRequest<T>();
-            return request.SendRequest(location);
+            return request.SendRequest(location,loadDependencyOperation);
         }
 
-        public override CResourceRequest<T> ProvideAsync<T>(IResourceLocation location)
+        public override CResourceRequest<T> ProvideAsync<T>(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation)
         {
             CResourceBundleCreateRequest<T> request = new CResourceBundleCreateRequest<T>();
-            return request.SendRequestAsync(location);
+            return request.SendRequestAsync(location, loadDependencyOperation);
         }
 
         public override bool Release(IResourceLocation location, object asset)
@@ -834,64 +859,65 @@ namespace H3D.CResources
 
     public class BundleAssetCResourceProvider : CResourceProvider
     {
-        public override CResourceRequest<T> Provide<T>(IResourceLocation location)
+        public override CResourceRequest<T> Provide<T>(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation)
         {
             CResouceBundleAssetRequest<T> request = new CResouceBundleAssetRequest<T>();
 
-            return request.SendRequest(location);
+            return request.SendRequest(location, loadDependencyOperation);
         }
 
-        public override CResourceRequest<T> ProvideAsync<T>(IResourceLocation location)
+        public override CResourceRequest<T> ProvideAsync<T>(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation)
         {
             CResouceBundleAssetRequest<T> request = new CResouceBundleAssetRequest<T>();
-            return request.SendRequestAsync(location);
+            return request.SendRequestAsync(location, loadDependencyOperation);
         }
 
         public override bool Release(IResourceLocation location, object asset)
         {
             if (location == null)
                 throw new System.ArgumentNullException("location");
+            LogUtility.Log("Release Asset " + location.InternalId+asset);
             return true;
         }
     }
 
 #if UNITY_EDITOR
-    public class LocalAssetCResourceProvider : CResourceProvider
-    {
-        public override CResourceRequest<T> Provide<T>(IResourceLocation location)
-        {
-            CResourceRequest<T> request = new CResourceRequest<T>();
-            T asset = UnityEditor.AssetDatabase.LoadAssetAtPath(location.InternalId,typeof(T)) as T;
-            request.SetContent(asset);
-            return request;
-        }
+    //public class LocalAssetCResourceProvider : CResourceProvider
+    //{
+    //    public override CResourceRequest<T> Provide<T>(IResourceLocation location)
+    //    {
+    //        CResourceRequest<T> request = new CResourceRequest<T>();
+    //        T asset = UnityEditor.AssetDatabase.LoadAssetAtPath(location.InternalId,typeof(T)) as T;
+    //        request.SetContent(asset);
+    //        return request;
+    //    }
 
-        public override CResourceRequest<T> ProvideAsync<T>(IResourceLocation location)
-        {
-            return Provide<T>(location);
-        }
+    //    public override CResourceRequest<T> ProvideAsync<T>(IResourceLocation location)
+    //    {
+    //        return Provide<T>(location);
+    //    }
 
-        public override bool Release(IResourceLocation location, object asset)
-        {
+    //    public override bool Release(IResourceLocation location, object asset)
+    //    {
 
-            if (location == null)
-                throw new System.ArgumentNullException("location");
-            var go = asset as GameObject;
-            if (go != null)
-            {
-                //GameObjects cannot be resleased via Object.Destroy because they are considered an asset
-                //but they can't be unloaded via Resources.UnloadAsset since they are NOT an asset?
-                return true;
-            }
-            var obj = asset as Object;
-            if (obj != null)
-            {
-                Resources.UnloadAsset(obj);
-                return true;
-            }
-            return true;
-        }
-    }
+    //        if (location == null)
+    //            throw new System.ArgumentNullException("location");
+    //        var go = asset as GameObject;
+    //        if (go != null)
+    //        {
+    //            //GameObjects cannot be resleased via Object.Destroy because they are considered an asset
+    //            //but they can't be unloaded via Resources.UnloadAsset since they are NOT an asset?
+    //            return true;
+    //        }
+    //        var obj = asset as Object;
+    //        if (obj != null)
+    //        {
+    //            Resources.UnloadAsset(obj);
+    //            return true;
+    //        }
+    //        return true;
+    //    }
+    //}
 #endif
 
     public class BundleAssetCResourceLocation : IResourceLocation
@@ -903,10 +929,6 @@ namespace H3D.CResources
         public string ProviderId { get { return m_providerId; } }
         public IList<IResourceLocation> Dependencies { get { return m_dependencies; } }
         public bool HasDependencies { get { return m_dependencies != null && m_dependencies.Count > 0; } }
-
-
-
-
 
         public BundleAssetCResourceLocation(string id, string providerId, params IResourceLocation[] dependencies)
         {
@@ -925,26 +947,7 @@ namespace H3D.CResources
         public override int GetHashCode()
         {
             return m_providerId.GetHashCode();
-        }
-
-        public void Retain()
-        {
-            m_RefCount++;
-        }
-
-        public void Release()
-        {
-            m_RefCount--;
-        }
-        int m_RefCount = 0;
-        public int RefCount
-        {
-            get
-            {
-               return m_RefCount;
-            }
-        }
-           
+        }         
     }
 
     public class BundleCResourceLocation:IResourceLocation
@@ -971,31 +974,7 @@ namespace H3D.CResources
             m_dependencies = new List<IResourceLocation>(dependencies);
         }
 
-        public void Retain()
-        {
-            m_RefCount++;
-            foreach(var item in m_dependencies)
-            {
-                item.Retain();
-            }
-        }
-
-        public void Release()
-        {
-            m_RefCount--;
-            foreach(var item in m_dependencies)
-            {
-                item.Release();
-            }
-        }
-        int m_RefCount = 0;
-        public int RefCount
-        {
-            get
-            {
-                return m_RefCount;
-            }
-        }
+     
     }
 
 #if UNITY_EDITOR
@@ -1017,31 +996,7 @@ namespace H3D.CResources
             m_InternalId = internalId;
             m_ProviderId = providerId;
         }
-        public void Retain()
-        {
-            m_RefCount++;
-            foreach (var item in Dependencies)
-            {
-                item.Retain();
-            }
-        }
-
-        public void Release()
-        {
-            m_RefCount--;
-            foreach (var item in Dependencies)
-            {
-                item.Release();
-            }
-        }
-        int m_RefCount = 0;
-        public int RefCount
-        {
-            get
-            {
-                return m_RefCount;
-            }
-        }
+      
     }
 #endif
 
@@ -1066,37 +1021,37 @@ namespace H3D.CResources
     }
 
 #if UNITY_EDITOR
-    public class LocalAssetCResourceLocator : CResourceLocator
-    {
+    //public class LocalAssetCResourceLocator : CResourceLocator
+    //{
       
-        public LocalAssetCResourceLocator()
-        {
-            m_Locations = new Dictionary<int, IResourceLocation>();
-            IEnumerable<string> paths = Directory.GetFiles(ConstValue.m_PackPath, "*.*", SearchOption.AllDirectories).Where(
-                   p => p.EndsWith(".meta") == false && p.EndsWith(".cs") == false
-               );
-            foreach (var wholeFilePath in paths)
-            {
-                string assetPath = CRUtlity.FullPathToAssetPath(wholeFilePath);
-                string guid =  UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
-                System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-                int location = Lcation(AssetPathToLoadPath(assetPath), type);
+    //    public LocalAssetCResourceLocator()
+    //    {
+    //        m_Locations = new Dictionary<int, IResourceLocation>();
+    //        IEnumerable<string> paths = Directory.GetFiles(ConstValue.m_PackPath, "*.*", SearchOption.AllDirectories).Where(
+    //               p => p.EndsWith(".meta") == false && p.EndsWith(".cs") == false
+    //           );
+    //        foreach (var wholeFilePath in paths)
+    //        {
+    //            string assetPath = CRUtlity.FullPathToAssetPath(wholeFilePath);
+    //            string guid =  UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
+    //            System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+    //            int location = Lcation(AssetPathToLoadPath(assetPath), type);
 
-                m_Locations.Add(location,new LocalAssetCResourceLocation(assetPath,(typeof(LocalAssetCResourceProvider)).FullName));
-            }
-        }
+    //            m_Locations.Add(location,new LocalAssetCResourceLocation(assetPath,(typeof(LocalAssetCResourceProvider)).FullName));
+    //        }
+    //    }
 
-        public override IResourceLocation Locate<T>(string requestID)
-        {
-            IResourceLocation assetLocation = null;
-            int hashCode = Lcation(requestID, typeof(T));
-            if (m_Locations.ContainsKey(hashCode))
-            {
-                assetLocation = m_Locations[hashCode];
-            }
-            return assetLocation;
-        }   
-    }
+    //    public override IResourceLocation Locate<T>(string requestID)
+    //    {
+    //        IResourceLocation assetLocation = null;
+    //        int hashCode = Lcation(requestID, typeof(T));
+    //        if (m_Locations.ContainsKey(hashCode))
+    //        {
+    //            assetLocation = m_Locations[hashCode];
+    //        }
+    //        return assetLocation;
+    //    }   
+    //}
 #endif
 
     public class BundleAssetCResourceLocator : CResourceLocator

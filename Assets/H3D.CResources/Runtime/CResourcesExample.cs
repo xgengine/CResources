@@ -4,36 +4,34 @@ using UnityEngine;
 using H3D.CResources;
 public class CResourcesExample : MonoBehaviour
 {
-
     // Use this for initialization
-    IEnumerator Start()
+    void Start()
     {
-
-
         CResourceRequest<GameObject> request = CResources.LoadAsync<GameObject>("a/cube");
         request.Completed += (op) =>
         {
-            LogUtility.Log("MOJ " + request.Content);
-
-            CResources.Destroy(request.Content);
+            LogUtility.Log("MOJ " + op.Content.GetInstanceID());
+            CResources.Destroy(op.Content);
         };
-        //var request2 = CResources.LoadAsync<GameObject>("a/cube");
-        //request2.Completed += (p) =>
-        //{
-        //    LogUtility.Log("MOJ " + request2.Content);
-
-        //    CResources.Destroy(request2.Content);
-        //};
-
-        var request1  = CResources.Load<GameObject>("a/cube");
-        LogUtility.Log(request1.Content);
-        while(!request1.IsDone)
+      
+        var request2 = CResources.Load<GameObject>("a/cube");
+        CResourceRequest<GameObject> request3 = CResources.LoadAsync<GameObject>("a/cube");
+        request3.Completed += (op) =>
         {
-            yield return null;
-        }
-        LogUtility.Log(request1.Content);
+            LogUtility.Log("MOJ " + op.Content.GetInstanceID());
+            CResources.Destroy(op.Content);
+        };
+
+
+        LogUtility.Log("MOJ " + request2.Content.GetInstanceID());
+        CResources.Destroy(request2.Content);
+
   
-        yield break;
+        //var request1  = CResources.Load<GameObject>("a/cube");
+        //LogUtility.Log(request1.Content);
+
+
+
     }
     void Update()
     {
