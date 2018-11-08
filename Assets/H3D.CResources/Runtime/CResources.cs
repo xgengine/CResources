@@ -290,7 +290,7 @@ namespace H3D.CResources
 
             m_ResouceProviders = new List<IResourceProvider>();
 
-            m_ResouceProviders.Add(new BundleAssetCResourceProvider());
+            m_ResouceProviders.Add(new CResourcePoolProvider(new BundleAssetCResourceProvider()));
             m_ResouceProviders.Add(new CResourcePoolProvider(new LocalBundleCResourceProvider()));
 
             // m_ResouceProviders.Add(new LocalAssetCResourceProvider());
@@ -401,31 +401,36 @@ namespace H3D.CResources
             return request;        
         }
 
-        internal static void Release<T>(IResourceLocation location,object asset) where T:class
+        internal static void ReleaseResource<T>(IResourceLocation location,object asset) where T:class
         {
-            Debug.LogError(location.InternalId);
+
             IResourceProvider provider = GetResourceProvider<T>(location);
             provider.Release(location, asset);
             if (location.HasDependencies)
             {
                 for (int i = 0; i < location.Dependencies.Count; i++)
                 {
-                    Release<object>(location.Dependencies[i], null);
+                    ReleaseResource<object>(location.Dependencies[i], null);
                 }
             }
-            m_MapLocator.RemoveAsset(location);
+            
         }
-
         public static void Destroy(object obj)
         {
             IResourceLocation location = m_MapLocator.Locate(obj);
             if (location != null)
             {
-                Release<object>(location, null);
+                
                 if (m_MapLocator.IsInstance(obj))
                 {
                     m_MapLocator.RemoveInstance(obj);
                     Object.Destroy(obj as Object);
+                    ReleaseResource<object>(location, null);
+                }
+                else
+                {
+                    ReleaseResource<object>(location, null);
+                    m_MapLocator.RemoveAsset(location);
                 }
             }
             else
@@ -469,7 +474,7 @@ namespace H3D.CResources
 
 
 
-            internal Dictionary<int, KeyValuePair<System.WeakReference, int>> m_LocationID2RefrenceMap = new Dictionary<int, KeyValuePair<System.WeakReference, int>>();
+            internal Dictionary<int, KeyValuePair<System.WeakReference, int>> m_AssetID2RefrenceMap = new Dictionary<int, KeyValuePair<System.WeakReference, int>>();
 
             internal Dictionary<int, System.WeakReference> m_InstanceID2RefrenceMap = new Dictionary<int, System.WeakReference>();
 
@@ -488,17 +493,17 @@ namespace H3D.CResources
                         m_AssetID2LocationMap.Add(key, location);      
                     }
     
-                    if (!m_LocationID2RefrenceMap.ContainsKey(key))
+                    if (!m_AssetID2RefrenceMap.ContainsKey(key))
                     {
-                        m_LocationID2RefrenceMap.Add(key, new KeyValuePair<System.WeakReference, int>(new System.WeakReference(asset), 1));
+                        m_AssetID2RefrenceMap.Add(key, new KeyValuePair<System.WeakReference, int>(new System.WeakReference(asset), 1));
                        
                     }
                     else
                     {
-                        var keyValue = m_LocationID2RefrenceMap[key];
-                        m_LocationID2RefrenceMap[key] = new KeyValuePair<System.WeakReference, int>(keyValue.Key, keyValue.Value + 1);
+                        var keyValue = m_AssetID2RefrenceMap[key];
+                        m_AssetID2RefrenceMap[key] = new KeyValuePair<System.WeakReference, int>(keyValue.Key, keyValue.Value + 1);
                     }
-                    var d = m_LocationID2RefrenceMap[key];
+                    var d = m_AssetID2RefrenceMap[key];
                     //LogUtility.Log("Record Asset"+location.InternalId+" "+d.Value);
                 }
             }
@@ -566,18 +571,18 @@ namespace H3D.CResources
                         key = item.Key;
                     }
                 }
-                if (m_LocationID2RefrenceMap.ContainsKey(key))
+                if (m_AssetID2RefrenceMap.ContainsKey(key))
                 {
-                    var keyValue = m_LocationID2RefrenceMap[key];
+                    var keyValue = m_AssetID2RefrenceMap[key];
 
                     if(keyValue.Value==1)
                     {
-                        m_LocationID2RefrenceMap.Remove(key);
+                        m_AssetID2RefrenceMap.Remove(key);
                         m_AssetID2LocationMap.Remove(key);
                     }
                     else
                     {
-                        m_LocationID2RefrenceMap[key] = new KeyValuePair<System.WeakReference, int>(keyValue.Key, keyValue.Value - 1);
+                        m_AssetID2RefrenceMap[key] = new KeyValuePair<System.WeakReference, int>(keyValue.Key, keyValue.Value - 1);
                     }
                 }            
                 return false;
@@ -621,15 +626,15 @@ namespace H3D.CResources
             {
                 LogUtility.Log(info);
                 LogUtility.Log("++++++++++++++++++++++++++++++");
-                LogUtility.Log("[{0}][{1}][{2}][{3}]", m_AssetID2LocationMap.Count, m_LocationID2RefrenceMap.Count, m_InstanceID2LocationMap.Count, m_InstanceID2RefrenceMap.Count);
-                foreach(var item in m_LocationID2RefrenceMap)
+                LogUtility.Log("[{0}][{1}][{2}][{3}]", m_AssetID2LocationMap.Count, m_AssetID2RefrenceMap.Count, m_InstanceID2LocationMap.Count, m_InstanceID2RefrenceMap.Count);
+                foreach(var item in m_AssetID2RefrenceMap)
                 {
                     LogUtility.Log("[{0}][{1}][{2}]", m_AssetID2LocationMap[item.Key].InternalId, item.Value.Key.IsAlive, item.Value.Value);
                 }
                 LogUtility.Log("__________________________________");
                 foreach (var item in m_InstanceID2RefrenceMap)
                 {
-                    LogUtility.Log("[{0}][{1}][{2}]", m_InstanceID2LocationMap[item.Key].InternalId, item.Value.IsAlive,item.Value.Target.ToString());
+                    LogUtility.Log("[{0}][{1}][{2}]", m_InstanceID2LocationMap[item.Key].InternalId, item.Value.IsAlive,item.Value.Target);
                 }
                 LogUtility.Log("++++++++++++++++++++++++++++++");
             }
@@ -649,13 +654,13 @@ namespace H3D.CResources
                 for(int i =0;i<needReleaseInstances.Count;i++)
                 {
                     int key =needReleaseInstances[i]; 
-                    Release<object>(m_InstanceID2LocationMap[key],null);
+                    ReleaseResource<object>(m_InstanceID2LocationMap[key], null);
                     m_InstanceID2RefrenceMap.Remove(key);
                     m_InstanceID2LocationMap.Remove(key);
                 }
 
                 Dictionary<IResourceLocation, int> needReleaseAssets = new Dictionary<IResourceLocation, int>();
-                foreach(var assetRefrence in m_LocationID2RefrenceMap)
+                foreach(var assetRefrence in m_AssetID2RefrenceMap)
                 {
                     if(assetRefrence.Value.Key.IsAlive==false)
                     {
@@ -664,10 +669,10 @@ namespace H3D.CResources
                 }
                 foreach (var item in needReleaseAssets)
                 {
-                    Debug.LogError(item.Value);
                     for (int i = 0; i < item.Value; i++)
                     {
-                        Release<object>(item.Key, null);
+                        ReleaseResource<object>(item.Key, null);
+                        m_MapLocator.RemoveAsset(item.Key);
                     }
                 }
 

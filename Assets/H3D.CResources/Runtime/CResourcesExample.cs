@@ -5,7 +5,7 @@ using H3D.CResources;
 public class CResourcesExample : MonoBehaviour
 {
     // Use this for initialization
-    void Start()
+    IEnumerator Start()
     {
        // CResourceRequest<GameObject> request = CResources.Load<GameObject>("a/cube");
         //request.Completed += (op) =>
@@ -25,15 +25,36 @@ public class CResourcesExample : MonoBehaviour
 
         //LogUtility.Log("MOJ " + request2.Content.GetInstanceID());
 
-        var goo1 =  CResources.CreateInstanceAsync<GameObject>("a/cube");
-        var goo2 = CResources.CreateInstanceAsync<GameObject>("a/cube");
-        var goo3 = CResources.CreateInstanceAsync<GameObject>("a/cube");
+        float t = Time.realtimeSinceStartup;
+        var goo1 =  CResources.LoadAsync<GameObject>("a/cube");
+        yield return goo1;
+        Debug.Log(Time.realtimeSinceStartup - t);
+        t = Time.realtimeSinceStartup;
+        Instantiate(goo1.Content);
 
+
+        Debug.Log(Time.realtimeSinceStartup - t);
+        t = Time.realtimeSinceStartup;
+        var goo2 = CResources.LoadAsync< GameObject>("a/cube");
+        yield return goo2;
+        Debug.Log(Time.realtimeSinceStartup - t);
+        t = Time.realtimeSinceStartup;
+        Instantiate(goo2.Content);
+        Debug.Log(Time.realtimeSinceStartup - t);
+        t = Time.realtimeSinceStartup;
+        var goo3 = CResources.LoadAsync<GameObject>("a/cube");
+        yield return goo3;
+              Debug.Log(Time.realtimeSinceStartup - t);
         //var request1  = CResources.Load<GameObject>("a/cube");
         //LogUtility.Log(request1.Content);
+        t = Time.realtimeSinceStartup;
+        var goo4 = Resources.LoadAsync<GameObject>("cube");
+        Debug.Log(Time.realtimeSinceStartup - t);
+        t = Time.realtimeSinceStartup;
+        Instantiate(goo1.Content);
 
 
-
+        Debug.Log(Time.realtimeSinceStartup - t);
     }
     void Update()
     {
