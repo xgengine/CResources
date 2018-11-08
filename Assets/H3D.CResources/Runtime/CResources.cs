@@ -294,16 +294,18 @@ namespace H3D.CResources
             m_ResouceProviders.Add(new CResourcePoolProvider(new LocalBundleCResourceProvider()));
 
             // m_ResouceProviders.Add(new LocalAssetCResourceProvider());
-            SceneManager.sceneUnloaded += OnSceneUnloaded;
+            SceneManager.sceneUnloaded+= OnSceneUnloaded;
         }
 
         static void OnSceneUnloaded(Scene scene)
         {
+            LogUtility.Log("undload Load scene {0} ", scene.name);
             UnloadUnusedAssets();
         }
 
         public static AsyncOperation UnloadUnusedAssets()
         {
+            System.GC.Collect();
             AsyncOperation operation = Resources.UnloadUnusedAssets();
             operation.completed += (p) =>
             {
@@ -314,13 +316,9 @@ namespace H3D.CResources
 
         internal static void UnloadUnusedAssetsInternal()
         {
-            float t = Time.realtimeSinceStartup;
             System.GC.Collect();
-            for (int i = 0; i < m_ResouceProviders.Count; i++)
-            {
-                IResourceProvider provider = m_ResouceProviders[i];
-                provider.UnloadUnusedAssets();
-            }
+            float t = Time.realtimeSinceStartup;
+           
             m_MapLocator.UnloadUnusedAssets();
             LogUtility.Log("[UnloadUnusedAssetsInternal ] is Done use time {0}", (Time.realtimeSinceStartup - t));
         }
@@ -340,66 +338,38 @@ namespace H3D.CResources
 
         public static CResourceRequest<T> CreateInstance<T>(string requestID) where T:class
         {
+            CResourceRequest<T> requestInstance = new CResourceRequest<T>();
             IResourceLocation location = Locate<T>(requestID);
-            CResourceRequest<T> request = Load<T>(location);
-            T asset = request.Content as T;
-            T instance = Instantiate<T>(asset);
-            Release<T>(location, asset);
-            return request;
+            IResourceProvider provider = GetResourceProvider<T>(location);
+            CResourceRequest<T> request = provider.Provide<T>(location, LoadDependenciesAsync(location));     
+            Object instance = Object.Instantiate(request.Content as Object);
+            m_MapLocator.RecordInstance(request.Content, instance);
+            requestInstance.SetContent(instance);   
+            return requestInstance;
         }
 
         public static CResourceRequest<T> CreateInstanceAsync<T>(string requestID) where T : class
         {
             CResourceRequest<T> requestInstance = new CResourceRequest<T>();
             IResourceLocation location = Locate<T>(requestID);
-            CResourceRequest<T> request = LoadAsync<T>(location);
+            IResourceProvider provider = GetResourceProvider<T>(location);
+            CResourceRequest<T> request = provider.ProvideAsync<T>(location, LoadDependenciesAsync(location));
             request.Completed += (p) =>
             {
-                Debug.Log(p.Content);
                 T asset = p.Content as T;
-                T instance = Instantiate<T>(asset);
-                Release<T>(location, asset);
+
+                Object instance = Object.Instantiate(request.Content as Object);
+                m_MapLocator.RecordInstance(request.Content, instance);
                 requestInstance.SetContent(instance);
             };          
             return requestInstance;
         }
 
-        public static void Destroy(object obj)
-        {
-            IResourceLocation location = m_MapLocator.Locate(obj);
-            if (location != null)
-            {
-                Release<object>(location, obj);
-                if (m_MapLocator.IsInstance(obj))
-                {
-                    m_MapLocator.RemoveInstance(obj);
-                    Object.Destroy(obj as Object);
-                }
-            }
-            else
-            {
-                LogUtility.LogError(" CResource.Destory only can destory the asset and instance Load or Instantiate by CResources API ");
-            }
-        }
-
-        internal static T Instantiate<T>(T obj) where T :class
-        {
-            IResourceLocation location = m_MapLocator.Locate(obj);
-            if (location != null)
-            {
-                CResourceRequest<T> request = Load<T>(location);
-                Object instance = Object.Instantiate(request.Content as Object);
-                m_MapLocator.RecordInstance(request.Content, instance);
-                return instance as T;
-            }
-            return null;
-        }
- 
         internal static CResourceRequest<T> Load<T>(IResourceLocation location) where T : class
         {
             IResourceProvider provider = GetResourceProvider<T>(location);
             CResourceRequest<T> request= provider.Provide<T>(location, LoadDependencies(location));
-            m_MapLocator.RecordResource(location,request);
+            m_MapLocator.RecordAsset(location,request);
             return request;
         }
 
@@ -427,24 +397,40 @@ namespace H3D.CResources
         { 
             IResourceProvider provider = GetResourceProvider<T>(location);
             CResourceRequest<T> request = provider.ProvideAsync<T>(location,LoadDependenciesAsync(location));
-            m_MapLocator.RecordResource(location,request);
+            m_MapLocator.RecordAsset(location,request);
             return request;        
         }
 
         internal static void Release<T>(IResourceLocation location,object asset) where T:class
         {
+            Debug.LogError(location.InternalId);
             IResourceProvider provider = GetResourceProvider<T>(location);
-            int key = MapLocator.GetInstanceID(asset);
-            if(provider.Release(location, asset))
-            {
-                m_MapLocator.RemoveResource(key);            
-            }
+            provider.Release(location, asset);
             if (location.HasDependencies)
             {
                 for (int i = 0; i < location.Dependencies.Count; i++)
                 {
                     Release<object>(location.Dependencies[i], null);
                 }
+            }
+            m_MapLocator.RemoveAsset(location);
+        }
+
+        public static void Destroy(object obj)
+        {
+            IResourceLocation location = m_MapLocator.Locate(obj);
+            if (location != null)
+            {
+                Release<object>(location, null);
+                if (m_MapLocator.IsInstance(obj))
+                {
+                    m_MapLocator.RemoveInstance(obj);
+                    Object.Destroy(obj as Object);
+                }
+            }
+            else
+            {
+                LogUtility.LogError(" CResource.Destory only can destory the asset and instance Load or Instantiate by CResources API ");
             }
         }
 
@@ -477,13 +463,15 @@ namespace H3D.CResources
 
         internal class MapLocator
         {
-            internal Dictionary<int, IResourceLocation> m_AssetInstanceID2LocationMap = new Dictionary<int, IResourceLocation>();
+            internal Dictionary<int, IResourceLocation> m_AssetID2LocationMap = new Dictionary<int, IResourceLocation>();
 
-            internal Dictionary<int, int> m_InstanceID2AssetIDMap= new Dictionary<int, int>();
+            internal Dictionary<int, IResourceLocation> m_InstanceID2LocationMap = new Dictionary<int, IResourceLocation>();
 
-            internal Dictionary<int,System.WeakReference> m_InstanceID2InstanceMap= new Dictionary<int ,System.WeakReference> ();
 
-            internal Dictionary<int, System.WeakReference> m_AssetInstanceID2AssetsMap = new Dictionary<int, System.WeakReference>();
+
+            internal Dictionary<int, KeyValuePair<System.WeakReference, int>> m_LocationID2RefrenceMap = new Dictionary<int, KeyValuePair<System.WeakReference, int>>();
+
+            internal Dictionary<int, System.WeakReference> m_InstanceID2RefrenceMap = new Dictionary<int, System.WeakReference>();
 
             internal void RecordAsset(IResourceLocation location, object asset)
             {
@@ -495,18 +483,27 @@ namespace H3D.CResources
                 int key = GetInstanceID(asset);
                 if (key != -1)
                 {
-                    if (!m_AssetInstanceID2LocationMap.ContainsKey(key))
+                    if (!m_AssetID2LocationMap.ContainsKey(key))
                     {
-                        m_AssetInstanceID2LocationMap.Add(key, location);      
+                        m_AssetID2LocationMap.Add(key, location);      
                     }
-                    if (!m_AssetInstanceID2AssetsMap.ContainsKey(key))
+    
+                    if (!m_LocationID2RefrenceMap.ContainsKey(key))
                     {
-                        m_AssetInstanceID2AssetsMap.Add(key, new System.WeakReference(asset));
+                        m_LocationID2RefrenceMap.Add(key, new KeyValuePair<System.WeakReference, int>(new System.WeakReference(asset), 1));
+                       
                     }
+                    else
+                    {
+                        var keyValue = m_LocationID2RefrenceMap[key];
+                        m_LocationID2RefrenceMap[key] = new KeyValuePair<System.WeakReference, int>(keyValue.Key, keyValue.Value + 1);
+                    }
+                    var d = m_LocationID2RefrenceMap[key];
+                    //LogUtility.Log("Record Asset"+location.InternalId+" "+d.Value);
                 }
             }
 
-            internal void RecordResource<T>(IResourceLocation location, CResourceRequest<T> request) where T:class
+            internal void RecordAsset<T>(IResourceLocation location, CResourceRequest<T> request) where T:class
             {
                 if(!request.IsDone)
                 {
@@ -524,13 +521,13 @@ namespace H3D.CResources
             internal IResourceLocation Locate(object asset)
             {
                 int key = GetInstanceID(asset);
-                if(m_AssetInstanceID2LocationMap.ContainsKey(key))
+                if(m_AssetID2LocationMap.ContainsKey(key))
                 {
-                    return m_AssetInstanceID2LocationMap[key];
+                    return m_AssetID2LocationMap[key];
                 }
-                else if(m_InstanceID2AssetIDMap.ContainsKey(key))
+                else if(m_InstanceID2LocationMap.ContainsKey(key))
                 {
-                    return m_AssetInstanceID2LocationMap[m_InstanceID2AssetIDMap[key]];
+                    return m_InstanceID2LocationMap[key];
                 }
                 return null;
             }
@@ -543,40 +540,56 @@ namespace H3D.CResources
                     return;
                 }
                 int instanceID = GetInstanceID(instance);
-                m_InstanceID2InstanceMap.Add(instanceID,new System.WeakReference(asset));
-                m_InstanceID2AssetIDMap.Add(instanceID, GetInstanceID(asset));
+
+                m_InstanceID2LocationMap.Add(instanceID,Locate(asset));
+
+                m_InstanceID2RefrenceMap.Add(instanceID, new System.WeakReference(instance));
             }
 
             internal bool IsInstance(object asset)
             {
-                return m_InstanceID2AssetIDMap.ContainsKey(GetInstanceID(asset));
+                return m_InstanceID2LocationMap.ContainsKey(GetInstanceID(asset));
             }
 
             internal bool IsAsset(object asset)
             {
-                return m_AssetInstanceID2LocationMap.ContainsKey(GetInstanceID(asset));
+                return m_AssetID2LocationMap.ContainsKey(GetInstanceID(asset));
             }
 
-            internal bool RemoveResource(int key)
+            internal bool RemoveAsset(IResourceLocation location)
             {
-                if (key != -1)
+                int key = -1;
+                foreach(var item in m_AssetID2LocationMap)
                 {
-                    if (m_AssetInstanceID2LocationMap.ContainsKey(key))
+                    if(item.Value.InternalId == location.InternalId)
                     {
-                        m_AssetInstanceID2LocationMap.Remove(key);
-                        return true;
+                        key = item.Key;
                     }
-                  
                 }
+                if (m_LocationID2RefrenceMap.ContainsKey(key))
+                {
+                    var keyValue = m_LocationID2RefrenceMap[key];
+
+                    if(keyValue.Value==1)
+                    {
+                        m_LocationID2RefrenceMap.Remove(key);
+                        m_AssetID2LocationMap.Remove(key);
+                    }
+                    else
+                    {
+                        m_LocationID2RefrenceMap[key] = new KeyValuePair<System.WeakReference, int>(keyValue.Key, keyValue.Value - 1);
+                    }
+                }            
                 return false;
             }
 
             internal bool RemoveInstance(object asset)
             {
                 int key = GetInstanceID(asset);
-                if (m_AssetInstanceID2LocationMap.ContainsKey(key))
+                if (m_InstanceID2LocationMap.ContainsKey(key))
                 {
-                    m_AssetInstanceID2LocationMap.Remove(key);
+                    m_InstanceID2LocationMap.Remove(key);
+                    m_InstanceID2RefrenceMap.Remove(key);
                     return true;
                 }
                 return false;
@@ -603,34 +616,62 @@ namespace H3D.CResources
                 }
             }
 
+
+            void LogInfo(string info)
+            {
+                LogUtility.Log(info);
+                LogUtility.Log("++++++++++++++++++++++++++++++");
+                LogUtility.Log("[{0}][{1}][{2}][{3}]", m_AssetID2LocationMap.Count, m_LocationID2RefrenceMap.Count, m_InstanceID2LocationMap.Count, m_InstanceID2RefrenceMap.Count);
+                foreach(var item in m_LocationID2RefrenceMap)
+                {
+                    LogUtility.Log("[{0}][{1}][{2}]", m_AssetID2LocationMap[item.Key].InternalId, item.Value.Key.IsAlive, item.Value.Value);
+                }
+                LogUtility.Log("__________________________________");
+                foreach (var item in m_InstanceID2RefrenceMap)
+                {
+                    LogUtility.Log("[{0}][{1}][{2}]", m_InstanceID2LocationMap[item.Key].InternalId, item.Value.IsAlive,item.Value.Target.ToString());
+                }
+                LogUtility.Log("++++++++++++++++++++++++++++++");
+            }
             public void UnloadUnusedAssets()
             {
-                //List<int> needMoves = new List<int>();
-                //foreach(var item in m_InstanceID2InstanceMap)
-                //{
-                //    if(item.Value.IsAlive ==false)
-                //    {
-                //        needMoves.Add(item.Key);
-                //    }
-                //}
-                //for(int i =0;i<needMoves.Count;i++)
-                //{
-                //    m_InstanceResources.Remove(needMoves[i]);
-                //    m_Instances.Remove(needMoves[i]);
-                //}
-                //List<int> needreMoves = new List<int>();
-                //foreach (var item in m_Assets)
-                //{
-                //    if (item.Value.IsAlive == false)
-                //    {
-                //        needreMoves.Add(item.Key);
-                //    }
-                //}
-                //for (int i = 0; i < needreMoves.Count; i++)
-                //{
-                //    m_LoadedCResources.Remove(needreMoves[i]);
-                //    m_Assets.Remove(needreMoves[i]);
-                //}   
+                LogInfo("begin");
+
+                List<int> needReleaseInstances = new List<int>();
+
+                foreach(var instanceRefrence in m_InstanceID2RefrenceMap)
+                {
+                    if(instanceRefrence.Value.IsAlive == false||instanceRefrence.Value.Target.ToString() =="null")
+                    {
+                        needReleaseInstances.Add(instanceRefrence.Key);
+                    }
+                }
+                for(int i =0;i<needReleaseInstances.Count;i++)
+                {
+                    int key =needReleaseInstances[i]; 
+                    Release<object>(m_InstanceID2LocationMap[key],null);
+                    m_InstanceID2RefrenceMap.Remove(key);
+                    m_InstanceID2LocationMap.Remove(key);
+                }
+
+                Dictionary<IResourceLocation, int> needReleaseAssets = new Dictionary<IResourceLocation, int>();
+                foreach(var assetRefrence in m_LocationID2RefrenceMap)
+                {
+                    if(assetRefrence.Value.Key.IsAlive==false)
+                    {
+                        needReleaseAssets.Add(m_AssetID2LocationMap[ assetRefrence.Key], assetRefrence.Value.Value);
+                    }
+                }
+                foreach (var item in needReleaseAssets)
+                {
+                    Debug.LogError(item.Value);
+                    for (int i = 0; i < item.Value; i++)
+                    {
+                        Release<object>(item.Key, null);
+                    }
+                }
+
+                LogInfo("end");
             }
         }
     }
@@ -876,7 +917,6 @@ namespace H3D.CResources
         {
             if (location == null)
                 throw new System.ArgumentNullException("location");
-            LogUtility.Log("Release Asset " + location.InternalId+asset);
             return true;
         }
     }
