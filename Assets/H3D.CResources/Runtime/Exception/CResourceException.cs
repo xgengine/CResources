@@ -5,7 +5,7 @@ using System.Text;
 
 namespace H3D.CResources
 {
-    public class CResourcesException : System.Exception
+    internal class CResourcesException : System.Exception
     {
         public CResourcesException(string message) : base(message)
         {
@@ -19,7 +19,7 @@ namespace H3D.CResources
         }
     }
 
-    public class CanNotLocateExcption : CResourcesException
+    internal class CanNotLocateExcption : CResourcesException
     {
         public CanNotLocateExcption(string message) : base(message)
         {
@@ -33,7 +33,7 @@ namespace H3D.CResources
         }
     }
 
-    public class UnknownResourceProviderException : CResourcesException
+    internal class UnknownResourceProviderException : CResourcesException
     {
 
         public IResourceLocation Location { get; private set; }
@@ -50,7 +50,7 @@ namespace H3D.CResources
         }
     }
 
-    public class ResourceProviderFailedException : CResourcesException
+    internal class ResourceProviderFailedException : CResourcesException
     {
         public IResourceLocation Location { get; private set; }
         public IResourceProvider Provider { get; private set; }

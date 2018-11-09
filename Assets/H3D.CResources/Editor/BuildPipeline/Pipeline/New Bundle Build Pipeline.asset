@@ -14,32 +14,13 @@ MonoBehaviour:
   m_AssetCollector:
   - {fileID: 114842993345672832}
   m_AssetGaneraters: []
-  m_AssetModifiers:
-  - {fileID: 114338882167001780}
+  m_AssetModifiers: []
   m_BundleNameBuilder:
   - {fileID: 114978496894934046}
   m_BundleBuidler:
   - {fileID: 114992058675069774}
   m_BundleExporter:
   - {fileID: 114925807967057516}
---- !u!114 &114338882167001780
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29bca2570af3a439992bac935c858d2f, type: 3}
-  m_Name: MaterialSplitAlphaModifier
-  m_EditorClassIdentifier: 
-  m_InputCount: 3
-  m_OutputCount: 3
-  m_NeedOperateCount: 2
-  m_RealOperateCount: 0
-  m_Progresss: 0
-  m_AddedSuffix: _Alpha_ETC1
-  m_ShaderPropertyAlphaAddedSuffix: _ALPHA
 --- !u!114 &114842993345672832
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52,7 +33,7 @@ MonoBehaviour:
   m_Name: AssetCollector
   m_EditorClassIdentifier: 
   m_InputCount: 0
-  m_OutputCount: 3
+  m_OutputCount: 4
   m_NeedOperateCount: 0
   m_RealOperateCount: 0
   m_Progresss: 0
@@ -89,8 +70,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eac59d91daf254689a8ecc0c81f18d5d, type: 3}
   m_Name: CResourcesBundleNameBuilder
   m_EditorClassIdentifier: 
-  m_InputCount: 3
-  m_OutputCount: 4
+  m_InputCount: 4
+  m_OutputCount: 6
   m_NeedOperateCount: 0
   m_RealOperateCount: 0
   m_Progresss: 0

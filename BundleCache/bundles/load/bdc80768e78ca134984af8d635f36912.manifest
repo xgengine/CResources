@@ -1,0 +1,18 @@
+ManifestFileVersion: 0
+CRC: 474071589
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 72d7b434697e97a752cc3494a2836e47
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: c2bdabd68c118aabc18c59eaf5951821
+HashAppended: 0
+ClassTypes:
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+Assets:
+- Assets/CResources/New1.mat
+Dependencies: []

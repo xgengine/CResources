@@ -1,20 +1,17 @@
 ManifestFileVersion: 0
-CRC: 2114223974
+CRC: 2985360784
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 85a7e7db8aa756862bf6442501f1cef3
+    Hash: 5f987892da712eaf6662fdd95259672a
   TypeTreeHash:
     serializedVersion: 2
-    Hash: bef0adbe26fb506447e58b88cd26a519
+    Hash: c73412a662fd4e4f36af34cbdf078b85
 HashAppended: 0
 ClassTypes:
 - Class: 28
   Script: {instanceID: 0}
-- Class: 48
-  Script: {instanceID: 0}
 Assets:
 - Assets/CResourcesSharedData/Materials/TankAlbedo2.png
 - Assets/CResourcesSharedData/Materials/TankAlbedo2_Alpha_ETC1.png
-- Assets/CResourcesSharedData/NGUI/Shaders/Unlit - Transparent Colored_Alpha_ETC1.shader
 Dependencies: []

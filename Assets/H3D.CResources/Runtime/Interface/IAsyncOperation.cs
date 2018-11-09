@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-
+//copy from Unity.ResourceManager 
 namespace ResourceManagement
 {
     /// <summary>

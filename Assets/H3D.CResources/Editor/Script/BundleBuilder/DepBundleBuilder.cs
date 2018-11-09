@@ -26,7 +26,7 @@ namespace H3D.EditorCResources
                 {
                     assetsPaths.Add(assetFileGroup.m_AssetFiles[i].m_FilePath);
                 }
-                assetsPaths.Sort();
+            
                 assetBundleBuilds[k].assetNames = assetsPaths.ToArray();
             }
 
@@ -88,12 +88,14 @@ namespace H3D.EditorCResources
             {
 
                 string bundleName = assetGroup.m_BundleName ;
-                string assetPath = assetGroup.m_AssetFiles[0].m_FilePath;
-                System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+               
                 int location;
                 if(assetGroup.m_IsLoadAsset)
-                {      
-                    location= CResourceLocator.Lcation(CResourceLocator.AssetPathToLoadPath(assetPath), type);
+                {
+                    string assetPath = AssetDatabase.GUIDToAssetPath(bundleName.Replace("load/",""));
+                    System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+                    location = CResourceLocator.Lcation(CResourceLocator.AssetPathToLoadPath(assetPath), type);
+                    Debug.LogError(assetPath+ " "+location);
                 }
                 else
                 {

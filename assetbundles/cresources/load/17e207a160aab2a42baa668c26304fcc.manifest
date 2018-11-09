@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 3197308899
+CRC: 2506247931
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 7964ce857cbce8892bd27fbd249cb087
+    Hash: 880e63fc8f8ad22a49032dcd2fc0fed1
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 8f40dda791caeb85ec68635dfd3a9593
+    Hash: f49f05f36a566d50434f7d9f3fb347da
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -26,4 +26,4 @@ ClassTypes:
 Assets:
 - Assets/CResources/A/Cube1.prefab
 Dependencies:
-- C:/Users/14034/Desktop/UnityDemo/CResources/BundleCache/bundles/sharedassets/d4901972408753d02e32b19aa775aa0d
+- E:/UnityExample/CResources/BundleCache/bundles/sharedassets/d4901972408753d02e32b19aa775aa0d
