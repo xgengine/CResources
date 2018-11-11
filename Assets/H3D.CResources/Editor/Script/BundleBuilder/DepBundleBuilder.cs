@@ -95,7 +95,7 @@ namespace H3D.EditorCResources
                     string assetPath = AssetDatabase.GUIDToAssetPath(bundleName.Replace("load/",""));
                     System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
                     location = CResourceLocator.Lcation(CResourceLocator.AssetPathToLoadPath(assetPath), type);
-                    Debug.LogError(assetPath+ " "+location);
+                    //Debug.LogError(assetPath+ " "+location);
                 }
                 else
                 {

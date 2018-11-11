@@ -3,7 +3,7 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -21,10 +21,52 @@ MonoBehaviour:
   - {fileID: 114992058675069774}
   m_BundleExporter:
   - {fileID: 114925807967057516}
+  m_PlayerBuilder:
+  - {fileID: 114607280352737280}
+--- !u!114 &114072113777777708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7467ff2e492e404cbce30fa48affef9, type: 3}
+  m_Name: PlayerBuilder
+  m_EditorClassIdentifier: 
+  m_InputCount: 0
+  m_OutputCount: 0
+  m_NeedOperateCount: 0
+  m_RealOperateCount: 0
+  m_Progresss: 0
+  m_isDevelopment: 0
+  m_isScriptDebugging: 1
+  m_version: 0.0.0
+  m_outPath: PlayerOutput
+--- !u!114 &114607280352737280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7467ff2e492e404cbce30fa48affef9, type: 3}
+  m_Name: PlayerBuilder
+  m_EditorClassIdentifier: 
+  m_InputCount: 0
+  m_OutputCount: 0
+  m_NeedOperateCount: 0
+  m_RealOperateCount: 0
+  m_Progresss: 0
+  m_isDevelopment: 0
+  m_isScriptDebugging: 1
+  m_version: 0.0.0
+  m_outPath: PlayerOutput
 --- !u!114 &114842993345672832
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -33,7 +75,7 @@ MonoBehaviour:
   m_Name: AssetCollector
   m_EditorClassIdentifier: 
   m_InputCount: 0
-  m_OutputCount: 4
+  m_OutputCount: 6
   m_NeedOperateCount: 0
   m_RealOperateCount: 0
   m_Progresss: 0
@@ -44,7 +86,7 @@ MonoBehaviour:
 --- !u!114 &114925807967057516
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -58,11 +100,11 @@ MonoBehaviour:
   m_RealOperateCount: 0
   m_Progresss: 0
   m_DeleteExporterFolder: 1
-  m_ExproterPath: assetbundles/cresources
+  m_ExproterPath: Assets/StreamingAssets/cresources
 --- !u!114 &114978496894934046
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -70,15 +112,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eac59d91daf254689a8ecc0c81f18d5d, type: 3}
   m_Name: CResourcesBundleNameBuilder
   m_EditorClassIdentifier: 
-  m_InputCount: 4
-  m_OutputCount: 6
+  m_InputCount: 6
+  m_OutputCount: 8
   m_NeedOperateCount: 0
   m_RealOperateCount: 0
   m_Progresss: 0
 --- !u!114 &114992058675069774
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1

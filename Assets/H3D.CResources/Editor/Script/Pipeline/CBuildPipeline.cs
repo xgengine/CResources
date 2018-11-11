@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace H3D.EditorCResources
 {
     [CreateAssetMenu(menuName = "CResources/BundleBuildPipeline ")]
-    public class BundleBuildPipeline : ScriptableObject
+    public class CBuildPipeline : ScriptableObject
     {
         public List<Operation> m_AssetCollector = new List<Operation>();
         public List<Operation> m_AssetGaneraters = new List<Operation>();
@@ -13,6 +13,7 @@ namespace H3D.EditorCResources
         public List<Operation> m_BundleNameBuilder = new List<Operation>();
         public List<Operation> m_BundleBuidler = new List<Operation>();
         public List<Operation> m_BundleExporter = new List<Operation>();
+        public List<Operation> m_PlayerBuilder = new List<Operation>();
 
         protected IAssetCollector m_IAssetCollector;
         protected List<IAssetGanerater> m_IAssetGaneraters;
@@ -20,7 +21,7 @@ namespace H3D.EditorCResources
         protected IBundleNameBuilder m_IBundleNameBuilder;
         protected IBundleBuidler m_IBundleBuidler;
         protected IBundleExporter m_IBundleExporter;
-
+        protected IPlayerBuilder m_IPlayerBuilder;
         private void InitPipline()
         {
             if(m_AssetCollector.Count>0)
@@ -54,6 +55,10 @@ namespace H3D.EditorCResources
 
                 m_IBundleExporter = m_BundleExporter[0] as IBundleExporter;
             }
+            if(m_PlayerBuilder.Count>0)
+            {
+                m_IPlayerBuilder = m_PlayerBuilder[0] as IPlayerBuilder;
+            }
 
         }
        
@@ -66,6 +71,7 @@ namespace H3D.EditorCResources
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
             }
         }
+
         public void AddOperation(List<Operation> list, Operation so,bool isMult = false)
         {
             if (so != null)
@@ -82,7 +88,6 @@ namespace H3D.EditorCResources
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
             }
         }
-
 
         public void Build()
         {
@@ -138,10 +143,12 @@ namespace H3D.EditorCResources
                 {
                     m_IBundleExporter.Hanlde(bundleFiles);
                 }
-                else
+                
+                if(m_IPlayerBuilder !=null)
                 {
-                    return;
+                    m_IPlayerBuilder.Hanlde();
                 }
+
             }
             catch (CResourcesException e)
             {

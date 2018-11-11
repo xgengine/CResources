@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 //copy from Unity.ResourceManager 
-namespace ResourceManagement
+namespace H3D.CResources
 {
     /// <summary>
     /// Status values for IAsyncOperations
@@ -12,6 +12,7 @@ namespace ResourceManagement
         Succeeded,
         Failed
     };
+
 
     /// <summary>
     /// Base interface of all async ops
@@ -24,18 +25,9 @@ namespace ResourceManagement
         /// <value><c>true</c> if is done; otherwise, <c>false</c>.</value>
         AsyncOperationStatus Status { get; }
         /// <summary>
-        /// internal integrity check
-        /// </summary>
-        /// <returns></returns>
-        bool Validate();
-        /// <summary>
-        /// used by Validate to ensure operation is in correct state
-        /// </summary>
-        bool IsValid { get; set; }
-        /// <summary>
         /// Release operation back to internal cache. This can be used to avoid garbage collection.
         /// </summary>
-        void Release();
+        bool Release();
         /// <summary>
         /// Gets a value indicating whether this <see cref="T:ResourceManagement.IAsyncOperation"/> is done.
         /// </summary>
@@ -52,13 +44,6 @@ namespace ResourceManagement
         /// Reset status and error
         /// </summary>
         void ResetStatus();
-
-        /// <summary>
-        /// Gets the context object related to this operation, usually set to the IResourceLocation.
-        /// </summary>
-        /// <value>The context object.</value>
-        object Context { get; }
-
         /// <summary>
         /// Occurs when completed.
         /// </summary>
@@ -76,24 +61,5 @@ namespace ResourceManagement
 		object Result { get; }
 	}
 
-	/// <summary>
-	/// Templated version of IAsyncOperation, provides templated overrides where possible
-	/// </summary>
-	public interface IAsyncOperation<T> : IAsyncOperation
-    {
-        /// <summary>
-        /// Gets the result as the templated type.
-        /// </summary>
-        /// <value>The result.</value>
-        new T Result { get; }
-        /// <summary>
-        /// Internally marks operations to not automatically release back to the cache.
-        /// </summary>
-        /// <returns>Passes back this</returns>
-        IAsyncOperation<T> Retain();
-        /// <summary>
-        /// Occurs when completed.
-        /// </summary>
-        new event Action<IAsyncOperation<T>> Completed;
-    }
+	
 }

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
-
+using System.IO;
 namespace H3D.CResources
 {
     public class LogUtility
@@ -17,16 +17,20 @@ namespace H3D.CResources
             }
         }
 
+        static string path = Application.persistentDataPath + "/log.txt";
+
         public static string m_LogTag = LogTag.CResources;
 
         public static void Log(string format, params object[] args)
         {
             logger.Log(m_LogTag,string.Format(format, args));
+            File.AppendAllText(path,string.Format(format,args));
         }
         
         public static void Log(object message)
         {         
             logger.Log(m_LogTag, message);
+            File.AppendAllText(path,message.ToString());
         }
      
         public static void LogError(object message)

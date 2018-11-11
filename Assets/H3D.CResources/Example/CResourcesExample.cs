@@ -56,43 +56,44 @@ public class CResourcesExample : MonoBehaviour
         //Resources.UnloadAsset(mat);
 
 
-         var request = Resources.LoadAsync<GameObject>("qq");
-         request.completed += (op) =>
-         {
-              Debug.LogError(op.isDone + " " + op.priority);
-              Debug.LogError((op as ResourceRequest).asset);
-         };
+        // var request = Resources.LoadAsync<GameObject>("qq");
+        // request.completed += (op) =>
+        // {
+        //      Debug.LogError(op.isDone + " " + op.priority);
+        //      Debug.LogError((op as ResourceRequest).asset);
+        // };
 
-        while(!request.isDone)
-        {
-            Debug.LogError(request.progress);
-            yield return null;
-        }
+        //while(!request.isDone)
+        //{
+        //    Debug.LogError(request.progress);
+        //    yield return null;
+        //}
 
-        yield return new WaitForSeconds(2);
+        //yield return new WaitForSeconds(2);
 
-        yield return request;
+        //yield return request;
 
-        Debug.LogError(request.asset);
+        //Debug.LogError(request.asset);
 
 
         GameObject asset;
-        BeginSample();
-        asset = CResources.Load<GameObject>("qq").Content;
-        EndSample("Load Resource");
+        //BeginSample();
+        asset = CResources.Load<GameObject>("qq").Result;
+        //EndSample("Load Resource");
 
-        BeginSample();
+        //BeginSample();
         GameObject objs1 = Instantiate(asset);
-        EndSample("Instantiate Resource");
+        //EndSample("Instantiate Resource");
 
-        
-        BeginSample();
-        asset = CResources.Load<GameObject>("qqbund").Content;
-        EndSample("Load Bundle");
 
-        BeginSample();
+        //BeginSample();
+        asset = CResources.Load<GameObject>("qqbund").Result;
+        //EndSample("Load Bundle");
+
+        //BeginSample();
         GameObject objs2 = Instantiate(asset);
-        EndSample("Instantiate Bundle");
+        objs2.transform.Translate(Vector3.one);
+        //EndSample("Instantiate Bundle");
 
 
         //Material mats = objs.GetComponent<MeshRenderer>().sharedMaterial;

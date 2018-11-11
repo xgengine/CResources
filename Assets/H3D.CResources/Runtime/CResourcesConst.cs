@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace H3D.CResources
 {
-    public static class ConstValue
+    public static class CResourceConst
     {
         public static string m_PackPath = "assets/cresources";
         public static string m_BundlePath = "assetbundles/cresources";

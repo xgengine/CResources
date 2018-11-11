@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 1402444876
+CRC: 1605322589
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: d04c9c358f3755ceedad5a534fa42f08
+    Hash: 3d8f505426d41f4deaa853c26169a481
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 6f165f44e4778b6c9d85e7a145a54cb1
+    Hash: fe397485c3cec1106b49e9ff95e8f8a2
 HashAppended: 0
 ClassTypes:
 - Class: 21
@@ -19,4 +19,4 @@ Assets:
 - Assets/CResourcesSharedData/NGUI/Shaders/Unlit - Transparent Colored_Alpha_ETC1.shader
 - Assets/CResourcesSharedData/Materials/TankAlbedo2.mat
 Dependencies:
-- E:/UnityExample/CResources/BundleCache/bundles/sharedassets/971b41fa47c2604c7930375b67846e7d
+- C:/Users/14034/Desktop/UnityDemo/CResources/BundleCache/bundles/sharedassets/971b41fa47c2604c7930375b67846e7d

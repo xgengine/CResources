@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 namespace H3D.EditorCResources
 {
-    [CustomEditor(typeof(BundleBuildPipeline))]
-    public class BundleBuildPipelineEditor : Editor
+    [CustomEditor(typeof(CBuildPipeline))]
+    public class CBuildPipelineEditor : Editor
     {
 
         private OperatonUINode m_AssetCollectorUI;
@@ -16,16 +16,19 @@ namespace H3D.EditorCResources
         private OperatonUINode m_BundleNameBuilderUI;
         private OperatonUINode m_BundleBuidlerUI;
         private OperatonUINode m_BundleExporterUI;
-        private BundleBuildPipeline pipeline;
+        private OperatonUINode m_PlayerBuilderUI;
+        private CBuildPipeline pipeline;
         private void OnEnable()
         {
-            pipeline = target as BundleBuildPipeline;
+            pipeline = target as CBuildPipeline;
             m_AssetCollectorUI = new OperatonUINode(pipeline, pipeline.m_AssetCollector, "AssetCollector", typeof(AssetCollectorAttribute), false);
             m_AssetGaneratersUI = new OperatonUINode(pipeline, pipeline.m_AssetGaneraters, "AssetGanerater", typeof(AssetGaneraterAttribute), true);
             m_AssetModifiersUI = new OperatonUINode(pipeline, pipeline.m_AssetModifiers, "AssetModifier", typeof(AssetModifierAttribute), true);
             m_BundleNameBuilderUI = new OperatonUINode(pipeline, pipeline.m_BundleNameBuilder, "BundleNameBuilder", typeof(BundleNameBuilderAttribute), false);
             m_BundleBuidlerUI = new OperatonUINode(pipeline, pipeline.m_BundleBuidler, "BundleBuidler", typeof(BundleBuidlerAttribute), false);
             m_BundleExporterUI = new OperatonUINode(pipeline, pipeline.m_BundleExporter, "BundleExporter", typeof(BundleExporterAttribute), false);
+            m_BundleExporterUI = new OperatonUINode(pipeline, pipeline.m_BundleExporter, "BundleExporter", typeof(BundleExporterAttribute), false);
+            m_PlayerBuilderUI = new OperatonUINode(pipeline, pipeline.m_PlayerBuilder, "PlayerBuilder", typeof(PlayerBuilderAttribute), false);
         }
         public override void OnInspectorGUI()
         {
@@ -36,6 +39,7 @@ namespace H3D.EditorCResources
             m_BundleNameBuilderUI.DoLayoutList();
             m_BundleBuidlerUI.DoLayoutList();
             m_BundleExporterUI.DoLayoutList();
+            m_PlayerBuilderUI.DoLayoutList();
             serializedObject.ApplyModifiedProperties();
             BuildButton();
         }
@@ -47,15 +51,19 @@ namespace H3D.EditorCResources
             GUI.color = Color.green;
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.GetControlRect(GUILayout.ExpandWidth(true));
-            if (GUILayout.Button("Build", new GUIStyle("PreButton"), GUILayout.Width(60)))
+            bool isClick = GUILayout.Button("Build", new GUIStyle("PreButton"), GUILayout.Width(60));
+ 
+            EditorGUILayout.EndHorizontal();
+            GUI.color = c;
+            if(isClick)
             {
                 if (pipeline != null)
                 {
                     pipeline.Build();
                 }
             }
-            EditorGUILayout.EndHorizontal();
-            GUI.color = c;
+           
+
         }
 
 
@@ -66,7 +74,7 @@ namespace H3D.EditorCResources
         private List<Operation> m_Operations;
         private bool m_IsMultple;
         private Operation m_ActiveObject = null;
-        public OperatonUINode(BundleBuildPipeline pipeline, List<Operation> operations, string headName, System.Type attributeType, bool isMultple)
+        public OperatonUINode(CBuildPipeline pipeline, List<Operation> operations, string headName, System.Type attributeType, bool isMultple)
         {
             m_Operations = operations;
             m_IsMultple = isMultple;

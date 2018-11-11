@@ -2,240 +2,244 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
-public class TaskResult
+namespace H3D.CResources
 {
-    public object result;
-}
+    public class TaskResult
+    {
+        public object result;
+    }
 
-public class TaskConst 
-{
-    public const int INVAILD_TASK_ID = -1;
-}
+    public class TaskConst
+    {
+        public const int INVAILD_TASK_ID = -1;
+    }
 
 #if !CONSOLE_CLIENT
 
-public class Task
-{
-    public enum TaskState
+    public class Task
     {
-        Running,
-        Suspend,
-        Stop,
-    }
-
-    //IEnumerator m_coroutine;
-    Stack<IEnumerator> m_stack = new Stack<IEnumerator>();
-    List<int> m_join_task_list = new List<int>();
-    
-    int m_id;
-    string m_start_coroutine="";
-    public int Id
-    {
-        get { return m_id; }
-    }
-
-    TaskState m_state = TaskState.Running;
-    public Task.TaskState State
-    {
-        get { return m_state; }
-    }
-
-    object m_data;
-    public object Data
-    {
-        get { return m_data; }
-        set { m_data = value; }
-    }
-
-    public Task(int id, IEnumerator coroutine)
-    {
-        m_id = id;
-        m_stack.Push(coroutine);
-        m_start_coroutine = coroutine.ToString();
+        public enum TaskState
         {
-            #if USE_LOGWRAPPER 
-            LogWrapper.LogDebug("[TaskManager]new Task add to stack:" + id + ",corutine:" + m_start_coroutine);  
- #endif
+            Running,
+            Suspend,
+            Stop,
         }
-//      GameHelper.StartCoroutine(Update());
 
-       TaskManager.Instance.StartCoroutine (Update());
-    }
-    
-    public IEnumerator Suspend()
-    {
-        if (m_state == TaskState.Running)
+        Stack<IEnumerator> m_stack = new Stack<IEnumerator>();
+        List<int> m_join_task_list = new List<int>();
+
+        int m_id;
+        string m_start_coroutine = "";
+        public int Id
         {
-            m_state = TaskState.Suspend;
+            get { return m_id; }
+        }
+
+        TaskState m_state = TaskState.Running;
+        public Task.TaskState State
+        {
+            get { return m_state; }
+        }
+
+        object m_data;
+        public object Data
+        {
+            get { return m_data; }
+            set { m_data = value; }
+        }
+
+        public Task(int id, IEnumerator coroutine)
+        {
+            m_id = id;
+            m_stack.Push(coroutine);
+            m_start_coroutine = coroutine.ToString();
+            {
+#if USE_LOGWRAPPER
+            LogWrapper.LogDebug("[TaskManager]new Task add to stack:" + id + ",corutine:" + m_start_coroutine);  
+#endif
+            }
+            //      GameHelper.StartCoroutine(Update());
+
+            TaskManager.Instance.StartCoroutine(Update());
+        }
+
+        public IEnumerator Suspend()
+        {
+            if (m_state == TaskState.Running)
+            {
+                m_state = TaskState.Suspend;
 #if USE_LOGWRAPPER
                 string log = "[TaskManager][Suspend]:" + LogString();
                 LogWrapper.LogDebug(log);  
- #endif
-            yield return null;
+#endif
+                yield return null;
+            }
+            yield break;
         }
-        yield break;
-    }
 
-    public void Resume()
-    {
-        if (m_state == TaskState.Suspend)
+        public void Resume()
         {
-            m_state = TaskState.Running;
+            if (m_state == TaskState.Suspend)
+            {
+                m_state = TaskState.Running;
 
 #if USE_LOGWRAPPER
             string log = "[TaskManager][Resume]:" + LogString();
             LogWrapper.LogDebug(log);
 #endif
+            }
         }
-    }
 
-    public void Stop()
-    {
-        m_state = TaskState.Stop;
+        public void Stop()
+        {
+            m_state = TaskState.Stop;
 
 #if USE_LOGWRAPPER
         string log = "[TaskManager][Stop]:" + LogString();
         LogWrapper.LogDebug(log);
 #endif
-    }
-
-    public IEnumerator Join(int task_id)
-    {
-        Task task = TaskManager.Instance.FindTask(task_id);
-        if (task != null)
-        {
-            if (task.m_join_task_list == null)
-            {
-                task.m_join_task_list = new List<int>();
-            }
-            task.m_join_task_list.Add(m_id);
-            yield return Suspend();
         }
-        yield break;
-    }
 
-    IEnumerator Update()
-    {
-        while(State != TaskState.Stop)
+        public IEnumerator Join(int task_id)
         {
-            if (State == TaskState.Suspend)
+            Task task = TaskManager.Instance.FindTask(task_id);
+            if (task != null)
             {
-                yield return null;
-            }
-            else
-            {
-                IEnumerator e = m_stack.Peek();
-                Task last_task = TaskManager.Instance.CurrTask;
-                TaskManager.Instance.CurrTask = this;
-                bool move_next = e.MoveNext();
-                
-                TaskManager.Instance.CurrTask = last_task;
-                if (move_next)
+                if (task.m_join_task_list == null)
                 {
-                    if (e.Current is IEnumerator)
-                    {
-                        m_stack.Push(e.Current as IEnumerator);
-                        
-                        continue;
-                    }
-                    yield return e.Current;
+                    task.m_join_task_list = new List<int>();
+                }
+                task.m_join_task_list.Add(m_id);
+                yield return Suspend();
+            }
+            yield break;
+        }
+
+        IEnumerator Update()
+        {
+            while (State != TaskState.Stop)
+            {
+                if (State == TaskState.Suspend)
+                {
+                    yield return null;
                 }
                 else
                 {
-                    IEnumerator ie = m_stack.Pop();
-                    if (m_stack.Count == 0)
+                    IEnumerator e = m_stack.Peek();
+                    Task last_task = TaskManager.Instance.CurrTask;
+                    TaskManager.Instance.CurrTask = this;
+                    bool move_next = e.MoveNext();
+
+                    TaskManager.Instance.CurrTask = last_task;
+                    if (move_next)
                     {
-                        Stop();
+                        if (e.Current is IEnumerator)
+                        {
+                            m_stack.Push(e.Current as IEnumerator);
+
+                            continue;
+                        }
+                        yield return e.Current;
+                    }
+                    else
+                    {
+                        //IEnumerator ie = m_stack.Pop();
+                        if (m_stack.Count == 0)
+                        {
+                            Stop();
+                        }
                     }
                 }
             }
-        }
-        TaskManager.Instance.RemoveTask(m_id);
-        if (m_join_task_list != null)
-        {
-            for (int i = 0; i < m_join_task_list.Count;i++ )
+            TaskManager.Instance.RemoveTask(m_id);
+            if (m_join_task_list != null)
             {
-                int task_id = m_join_task_list[i];
-                TaskManager.Instance.ResumeTask(task_id);
+                for (int i = 0; i < m_join_task_list.Count; i++)
+                {
+                    int task_id = m_join_task_list[i];
+                    TaskManager.Instance.ResumeTask(task_id);
+                }
             }
         }
-    }
 
-    public string LogString()
-    {
-        return "task_id:" + m_id + ",status:" + m_state + ",stack_count:" + m_stack.Count + ",join_tasks:" + m_join_task_list.Count + " " + m_start_coroutine + "\n";
-    }
-
-}
-
-public class TaskManager 
-	#if !CONSOLE_CLIENT
-	: MonoBehaviour
-		
- #endif
-{
-	static TaskManager s_instance = null;
-
-    public static TaskManager Instance
-    {
-     //   get { return GameImmortalMng.TaskManager; }
-		get{
-			if( s_instance==null){
-				GameObject rMg = GameObject.Find("[TaskManager]");
-				if( rMg != null){
-					s_instance = rMg.GetComponent<TaskManager>();
-				}
-				else{
-					rMg = new GameObject("[TaskManager]");
-					s_instance = rMg.AddComponent<TaskManager>();
-				}
-			}//end by xg
-			return s_instance;
-		}
-    }
-
-    void Awake()
-    {
-		s_instance=this;
-	///	Debug.Log ("awake");
-        Init();
-    }
-
-
-    Dictionary<int, Task> m_tasks = new Dictionary<int, Task>();
-    int m_seq = 0;
-    Task m_curr_task;
-    public Task CurrTask
-    {
-        get { return m_curr_task; }
-        set { m_curr_task = value; }
-    }
-
-    public int TaskCount
-    {
-        get { return m_tasks.Count; }
-    }
-
-    public void Init()
-    {
-        s_instance = this;
-    }
-
-    public Task FindTask(int task_id)
-    {
-        Task task;
-        m_tasks.TryGetValue(task_id, out task);
-        return task;
-    }
-
-    public int StartTask(IEnumerator coroutine)
-    {
-        if(m_seq < 0)
+        public string LogString()
         {
-            m_seq = 0;
+            return "task_id:" + m_id + ",status:" + m_state + ",stack_count:" + m_stack.Count + ",join_tasks:" + m_join_task_list.Count + " " + m_start_coroutine + "\n";
         }
-        int id = m_seq++;
+
+    }
+
+    public class TaskManager
+#if !CONSOLE_CLIENT
+    : MonoBehaviour
+
+#endif
+    {
+        static TaskManager s_instance = null;
+
+        public static TaskManager Instance
+        {
+            //   get { return GameImmortalMng.TaskManager; }
+            get
+            {
+                if (s_instance == null)
+                {
+                    GameObject rMg = GameObject.Find("[TaskManager]");
+                    if (rMg != null)
+                    {
+                        s_instance = rMg.GetComponent<TaskManager>();
+                    }
+                    else
+                    {
+                        rMg = new GameObject("[TaskManager]");
+                        s_instance = rMg.AddComponent<TaskManager>();
+                    }
+                }//end by xg
+                return s_instance;
+            }
+        }
+
+        void Awake()
+        {
+            s_instance = this;
+            ///	Debug.Log ("awake");
+            Init();
+        }
+
+
+        Dictionary<int, Task> m_tasks = new Dictionary<int, Task>();
+        int m_seq = 0;
+        Task m_curr_task;
+        public Task CurrTask
+        {
+            get { return m_curr_task; }
+            set { m_curr_task = value; }
+        }
+
+        public int TaskCount
+        {
+            get { return m_tasks.Count; }
+        }
+
+        public void Init()
+        {
+            s_instance = this;
+        }
+
+        public Task FindTask(int task_id)
+        {
+            Task task;
+            m_tasks.TryGetValue(task_id, out task);
+            return task;
+        }
+
+        public int StartTask(IEnumerator coroutine)
+        {
+            if (m_seq < 0)
+            {
+                m_seq = 0;
+            }
+            int id = m_seq++;
 
 #if USE_LOGWRAPPER
         if (id % 3  == 0)
@@ -251,53 +255,53 @@ public class TaskManager
             
 #endif
 
-        Task task = new Task(id, coroutine);
-        if (task.State != Task.TaskState.Stop)
-        {
-            m_tasks[id] = task;
-            return id;
+            Task task = new Task(id, coroutine);
+            if (task.State != Task.TaskState.Stop)
+            {
+                m_tasks[id] = task;
+                return id;
+            }
+            return -1;
         }
-        return -1;
-    }
 
-    public void RemoveTask(int task_id)
-    {
-        m_tasks.Remove(task_id);
+        public void RemoveTask(int task_id)
+        {
+            m_tasks.Remove(task_id);
 
 #if USE_LOGWRAPPER
         string log = "[TaskManager][RemoveTask]:" + task_id;
         LogWrapper.LogDebug(log);
 #endif
-    }
-
-    public void StopTask(int task_id)
-    {
-        Task task = FindTask(task_id);
-        if (task != null)
-        {
-            task.Stop();
         }
-    }
 
-    public void SuspendTask(int task_id)
-    {
-        Task task = FindTask(task_id);
-        if (task != null)
+        public void StopTask(int task_id)
         {
-            task.Suspend();
+            Task task = FindTask(task_id);
+            if (task != null)
+            {
+                task.Stop();
+            }
         }
-    }
 
-    public void ResumeTask(int task_id)
-    {
-        Task task = FindTask(task_id);
-        if (task != null)
+        public void SuspendTask(int task_id)
         {
-            task.Resume();
+            Task task = FindTask(task_id);
+            if (task != null)
+            {
+                task.Suspend();
+            }
         }
-    }
 
-}
+        public void ResumeTask(int task_id)
+        {
+            Task task = FindTask(task_id);
+            if (task != null)
+            {
+                task.Resume();
+            }
+        }
+
+    }
 
 #else
 
@@ -542,4 +546,6 @@ public class TaskManager
     }
 }
 
- #endif
+#endif
+
+}

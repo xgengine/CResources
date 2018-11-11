@@ -1,13 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-namespace ResourceManagement
+namespace H3D.CResources
 {
     public interface IResourceLocator
     {
-        bool Locate<T>(object key, out IEnumerable<IResourceLocation> locations)
+        IResourceLocation Locate<T>(object requestI)
         where T : class;
     }
-
 }
 

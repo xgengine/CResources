@@ -3,288 +3,277 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ResourceManagement
+namespace H3D.CResources
 {
-    //public class CResourceRequest<TObject> : IAsyncOperation<TObject>
-    //{
-    //    protected TObject m_result;
-    //    protected AsyncOperationStatus m_status;
-    //    protected Exception m_error;
-    //    protected object m_context;
-    //    protected bool m_releaseToCacheOnCompletion = false;
-    //    Action<IAsyncOperation> m_completedAction;
+    public class CResourceRequest :IAsyncOperation
+    {
+        protected object m_result;
+        protected AsyncOperationStatus m_status;
+        protected Exception m_error;
+        protected object m_context;
+        protected int m_refcount;
+        protected bool m_isDone;
 
-    //    List<Action<IAsyncOperation<TObject>>> m_completedActionT;
+        Action<IAsyncOperation> m_completedAction;
 
-    //    protected CResourceRequest()
-    //    {
-    //        IsValid = true;
-    //    }
+        protected CResourceRequest()
+        {
+        }
 
-    //    public bool IsValid { get; set; }
+        public bool Release()
+        {
+            m_refcount--;
+            return m_refcount == 0;
+        }
 
-    //    public override string ToString()
-    //    {
-    //        var instId = "";
-    //        var or = m_result as Object;
-    //        if (or != null)
-    //            instId = "(" + or.GetInstanceID().ToString() + ")";
-    //        return base.ToString() + " result = " + m_result + instId + ", status = " + m_status + ", Valid = " + IsValid + ", canRelease = " + m_releaseToCacheOnCompletion;
-    //    }
+        public CResourceRequest Retain()
+        {
+            m_refcount++;
+            return this;
+        }
 
-    //    public virtual void Release()
-    //    {
-    //        Validate();
-    //        m_releaseToCacheOnCompletion = true;
-    //        if (!m_insideCompletionEvent && IsDone)
-    //            AsyncOperationCache.Instance.Release(this);
-    //    }
+        public virtual void ResetStatus()
+        {
+            m_isDone = false;
+            m_status = AsyncOperationStatus.None;
+            m_error = null;
+            m_context = null;
+        }
 
-    //    public IAsyncOperation<TObject> Retain()
-    //    {
-    //        Validate();
-    //        m_releaseToCacheOnCompletion = false;
-    //        return this;
-    //    }
+        event Action<IAsyncOperation> IAsyncOperation.Completed
+        {
+            add
+            {
+                if (IsDone)
+                    value(this);
+                else
+                    m_completedAction += value;
+            }
 
-    //    public virtual void ResetStatus()
-    //    {
-    //        m_releaseToCacheOnCompletion = true;
-    //        m_status = AsyncOperationStatus.None;
-    //        m_error = null;
-    //        m_result = default(TObject);
-    //        m_context = null;
-    //    }
+            remove
+            {
+                m_completedAction -= value;
+            }
+        }
 
-    //    public bool Validate()
-    //    {
-    //        if (!IsValid)
-    //        {
-    //            Debug.LogError("INVALID OPERATION STATE: " + this);
-    //            return false;
-    //        }
-    //        return true;
-    //    }
+        public object Result
+        {
+            get
+            {
+                return m_result;
+            }
+        }
 
-    //    public event Action<IAsyncOperation<TObject>> Completed
-    //    {
-    //        add
-    //        {
-    //            Validate();
-    //            if (IsDone)
-    //            {
-    //                DelayedActionManager.AddAction(value, 0, this);
-    //            }
-    //            else
-    //            {
-    //                if (m_completedActionT == null)
-    //                    m_completedActionT = new List<Action<IAsyncOperation<TObject>>>(2);
-    //                m_completedActionT.Add(value);
-    //            }
-    //        }
+        public AsyncOperationStatus Status
+        {
+            get
+            {
+                return m_status;
+            }
+            protected set
+            {
+                m_status = value;
+            }
+        }
 
-    //        remove
-    //        {
-    //            m_completedActionT.Remove(value);
-    //        }
-    //    }
+        public Exception OperationException
+        {
+            get
+            {
+                return m_error;
+            }
+        }
 
-    //    event Action<IAsyncOperation> IAsyncOperation.Completed
-    //    {
-    //        add
-    //        {
-    //            Validate();
-    //            if (IsDone)
-    //                DelayedActionManager.AddAction(value, 0, this);
-    //            else
-    //                m_completedAction += value;
-    //        }
+        public bool MoveNext()
+        {
+            return !IsDone;
+        }
 
-    //        remove
-    //        {
-    //            m_completedAction -= value;
-    //        }
-    //    }
+        public void Reset()
+        {
+        }
 
-    //    object IAsyncOperation.Result
-    //    {
-    //        get
-    //        {
-    //            Validate();
-    //            return m_result;
-    //        }
-    //    }
+        public object Current
+        {
+            get
+            {
+                return Result;
+            }
+        }
 
-    //    public AsyncOperationStatus Status
-    //    {
-    //        get
-    //        {
-    //            Validate();
-    //            return m_status;
-    //        }
-    //        protected set
-    //        {
-    //            Validate();
-    //            m_status = value;
-    //        }
-    //    }
+        public virtual bool IsDone
+        {
+            get
+            {
+                return m_isDone;
+            }
+        }
 
-    //    public Exception OperationException
-    //    {
-    //        get
-    //        {
-    //            Validate();
-    //            return m_error;
-    //        }
-    //    }
+        public virtual float PercentComplete
+        {
+            get
+            {
+                return IsDone ? 1f : 0f;
+            }
+        }
 
-    //    public bool MoveNext()
-    //    {
-    //        Validate();
-    //        return !IsDone;
-    //    }
+        public object Context
+        {
+            get
+            {
+                return m_context;
+            }
+            protected set
+            {
+                m_context = value;
+            }
+        }
 
-    //    public void Reset()
-    //    {
-    //    }
+        public virtual void InvokeCompletionEvent()
+        {
+            if (m_completedAction != null)
+            {
+                var tmpEvent = m_completedAction;
+                m_completedAction = null;
+                try
+                {
+                    tmpEvent(this);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    m_error = e;
+                    m_status = AsyncOperationStatus.Failed;
+                }
+            }
+        }
 
-    //    public object Current
-    //    {
-    //        get
-    //        {
-    //            Validate();
-    //            return Result;
-    //        }
-    //    }
-    //    public TObject Result
-    //    {
-    //        get
-    //        {
-    //            Validate();
-    //            return m_result;
-    //        }
-    //        set
-    //        {
-    //            Validate();
-    //            m_result = value;
-    //        }
-    //    }
-    //    public virtual bool IsDone
-    //    {
-    //        get
-    //        {
-    //            Validate();
-    //            return !(EqualityComparer<TObject>.Default.Equals(Result, default(TObject)));
-    //        }
-    //    }
-    //    public virtual float PercentComplete
-    //    {
-    //        get
-    //        {
-    //            Validate();
-    //            return IsDone ? 1f : 0f;
-    //        }
-    //    }
-    //    public object Context
-    //    {
-    //        get
-    //        {
-    //            Validate();
-    //            return m_context;
-    //        }
-    //        protected set
-    //        {
-    //            Validate();
-    //            m_context = value;
-    //        }
-    //    }
+        public virtual void SetResult(object result)
+        {
+            m_result = result;
+            m_status = (m_result == null) ? AsyncOperationStatus.Failed : AsyncOperationStatus.Succeeded;
+        }
+    }
 
-    //    bool m_insideCompletionEvent = false;
-    //    public void InvokeCompletionEvent()
-    //    {
-    //        Validate();
-    //        m_insideCompletionEvent = true;
-    //        if (m_completedActionT != null)
-    //        {
-    //            for (int i = 0; i < m_completedActionT.Count; i++)
-    //            {
-    //                try
-    //                {
-    //                    m_completedActionT[i](this);
-    //                }
-    //                catch (Exception e)
-    //                {
-    //                    Debug.LogException(e);
-    //                    m_error = e;
-    //                    m_status = AsyncOperationStatus.Failed;
-    //                }
-    //            }
-    //            m_completedActionT.Clear();
-    //        }
+    public class CResourceRequest<T> : CResourceRequest where T : class
+    {
+        List<Action<CResourceRequest<T>>> m_completedActionT;
 
-    //        if (m_completedAction != null)
-    //        {
-    //            var tmpEvent = m_completedAction;
-    //            m_completedAction = null;
-    //            try
-    //            {
-    //                tmpEvent(this);
-    //            }
-    //            catch (Exception e)
-    //            {
-    //                Debug.LogException(e);
-    //                m_error = e;
-    //                m_status = AsyncOperationStatus.Failed;
-    //            }
-    //        }
-    //        m_insideCompletionEvent = false;
-    //        if (m_releaseToCacheOnCompletion)
-    //            AsyncOperationCache.Instance.Release(this);
-    //    }
+        public CResourceRequest()
+        {
+        }
 
-    //    public virtual void SetResult(TObject result)
-    //    {
-    //        Validate();
-    //        m_result = result;
-    //        m_status = (m_result == null) ? AsyncOperationStatus.Failed : AsyncOperationStatus.Succeeded;
-    //    }
+        public new CResourceRequest<T> Retain()
+        {
+            m_refcount++;
+            return this;
+        }
 
-    //}
+        public event Action<CResourceRequest<T>> Completed
+        {
+            add
+            {
+                if (IsDone)
+                {
+                    value(this);
+                }
+                else
+                {
+                    if (m_completedActionT == null)
+                        m_completedActionT = new List<Action<CResourceRequest<T>>>(2);
+                    m_completedActionT.Add(value);
+                }
+            }
 
-    //public class EmptyOperation<TObject> : AsyncOperationBase<TObject>
-    //{
-    //    public virtual IAsyncOperation<TObject> Start(IResourceLocation loc, TObject val)
-    //    {
-    //        m_context = loc;
-    //        SetResult(val);
-    //        DelayedActionManager.AddAction((Action)InvokeCompletionEvent, 0);
-    //        return this;
-    //    }
-    //}
+            remove
+            {
+                m_completedActionT.Remove(value);
+            }
+        }
 
-    //public class ChainOperation<TObject, TObjectDependency> : AsyncOperationBase<TObject>
-    //{
-    //    Func<TObjectDependency, IAsyncOperation<TObject>> m_func;
-    //    public virtual IAsyncOperation<TObject> Start(IAsyncOperation<TObjectDependency> dependency, Func<TObjectDependency, IAsyncOperation<TObject>> func)
-    //    {
-    //        m_func = func;
-    //        dependency.Completed += OnDependencyCompleted;
-    //        return this;
-    //    }
+        public new T Result
+        {
+            get
+            {
+                return m_result as T;
+            }
+            set
+            {
+                m_result = value;
+            }
+        }
 
-    //    private void OnDependencyCompleted(IAsyncOperation<TObjectDependency> op)
-    //    {
-    //        var funcOp = m_func(op.Result);
-    //        m_context = funcOp.Context;
-    //        op.Release();
-    //        funcOp.Completed += OnFuncCompleted;
-    //    }
+        public override void InvokeCompletionEvent()
+        {
+            if (m_completedActionT != null)
+            {
+                for (int i = 0; i < m_completedActionT.Count; i++)
+                {
+                    try
+                    {
+                        m_completedActionT[i](this);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        m_error = e;
+                        m_status = AsyncOperationStatus.Failed;
+                    }
+                }
+                m_completedActionT.Clear();
+            }
+            base.InvokeCompletionEvent();
+        }
 
-    //    private void OnFuncCompleted(IAsyncOperation<TObject> op)
-    //    {
-    //        SetResult(op.Result);
-    //        InvokeCompletionEvent();
-    //    }
-    //}
+        protected IResourceLocation m_location;
+
+        protected List<CResourceRequest<object>> m_dependencyOperations;
+
+        public CResourceRequest<T> Send(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation, bool isAsync)
+        {
+            m_location = location;
+            m_dependencyOperations = loadDependencyOperation;
+            if (isAsync)
+            {
+                TaskManager.Instance.StartTask(LoadAsyncInternal());
+            }
+            else
+            {
+                LoadInternal();
+            }
+            return this;
+        }
+
+        protected IEnumerator LoadAsyncInternal()
+        {
+            yield return LoadAsync();
+            m_isDone = true;
+            InvokeCompletionEvent();
+
+        }
+
+        protected void LoadInternal()
+        {
+            Load();
+            m_isDone = true;
+        }
+
+        protected virtual IEnumerator LoadAsync()
+        {
+            yield break;
+
+        }
+
+        protected virtual void Load()
+        {
+
+        }
+
+        public void LoadImmediate()
+        {
+            LoadInternal();
+        }
+    }
+
 }
 
