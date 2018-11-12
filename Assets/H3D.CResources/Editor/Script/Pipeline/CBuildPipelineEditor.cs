@@ -51,19 +51,17 @@ namespace H3D.EditorCResources
             GUI.color = Color.green;
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.GetControlRect(GUILayout.ExpandWidth(true));
-            bool isClick = GUILayout.Button("Build", new GUIStyle("PreButton"), GUILayout.Width(60));
- 
-            EditorGUILayout.EndHorizontal();
-            GUI.color = c;
-            if(isClick)
+            if(GUILayout.Button("Build", new GUIStyle("PreButton"), GUILayout.Width(60)))
             {
                 if (pipeline != null)
                 {
-                    pipeline.Build();
+                    EditorApplication.delayCall+=pipeline.Build;
                 }
             }
-           
-
+ 
+            EditorGUILayout.EndHorizontal();
+            GUI.color = c;
+         
         }
 
 

@@ -12,12 +12,13 @@ namespace H3D.CResources
         public BundleAssetLocator()
         {
             string locationDataPath;
-#if UNITY_EDITOR
-            locationDataPath = Path.Combine(Path.GetDirectoryName(Application.dataPath), CResourceConst.m_BundlePath + "/" + CResourceConst.m_LocationName);
 
-#else
-            locationDataPath = Path.Combine(Application.streamingAssetsPath, "cresources/" + CResourceConst.m_LocationName);
-#endif
+
+            locationDataPath = Path.Combine(Path.GetDirectoryName(Application.dataPath), CResourceConst.m_BundlePath + "/" + CResourceConst.m_LocationName);
+            if(!File.Exists(locationDataPath))
+            {
+                locationDataPath = Path.Combine(Application.streamingAssetsPath, "cresources/" + CResourceConst.m_LocationName);
+            }
             ReadLoactionData(locationDataPath);
         }
 

@@ -1,0 +1,29 @@
+ManifestFileVersion: 0
+CRC: 2961928980
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: d47300db7bfd75af818eaffede967ddc
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: f49f05f36a566d50434f7d9f3fb347da
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 65
+  Script: {instanceID: 0}
+Assets:
+- Assets/CResources/A/Cube.prefab
+Dependencies:
+- E:/UnityExample/CResources/cresource_workspace/cache/sharedassets/d4901972408753d02e32b19aa775aa0d

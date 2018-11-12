@@ -72,29 +72,34 @@ namespace H3D.CResources
             LogUtility.Log("[UnloadUnusedAssetsInternal ] is Done use time {0}", (Time.realtimeSinceStartup - t));
         }
 
-        public static CResourceRequest<T> Load<T>(string requestID) where T : class
+        public static T Load<T>(string requestID) where T : class
         {
             IResourceLocation location = Locate<T>(requestID);
             CResourceRequest<T> request = Load<T>(location);
-            return request;       
+            return request.Result;       
         }
-
         public static CResourceRequest<T> LoadAsync<T>(string requestID) where T:class
         {
             IResourceLocation location = Locate<T>(requestID);
             return LoadAsync<T>(location);
         }
 
-        public static CResourceRequest<T> CreateInstance<T>(string requestID) where T:class
+        public static T CreateInstance<T>(string requestID) where T:class
         {
             CResourceRequest<T> requestInstance = new CResourceRequest<T>();
             IResourceLocation location = Locate<T>(requestID);
             IResourceProvider provider = GetResourceProvider<T>(location);
-            CResourceRequest<T> request = provider.Provide<T>(location, LoadDependenciesAsync(location));     
-            Object instance = Object.Instantiate(request.Result as Object);
-            m_MapLocator.RecordInstance(request.Result, instance);
+            CResourceRequest<T> request = provider.Provide<T>(location, LoadDependencies(location));
+
+            Object instance = null;
+            if(request.Status == AsyncOperationStatus.Succeeded)
+            {
+                instance = Object.Instantiate(request.Result as Object);
+                m_MapLocator.RecordInstance(instance, location);
+            }
+    
             requestInstance.SetResult(instance);   
-            return requestInstance;
+            return requestInstance.Result;
         }
 
         public static CResourceRequest<T> CreateInstanceAsync<T>(string requestID) where T : class
@@ -108,7 +113,7 @@ namespace H3D.CResources
                 T asset = p.Result as T;
 
                 Object instance = Object.Instantiate(request.Result as Object);
-                m_MapLocator.RecordInstance(request.Result, instance);
+                m_MapLocator.RecordInstance(instance, location);
                 requestInstance.SetResult(instance);
             };          
             return requestInstance;
@@ -237,7 +242,7 @@ namespace H3D.CResources
 
             internal void RecordAsset(IResourceLocation location, object asset)
             {
-                LogUtility.Log("Record "+location.InternalId);
+          
                 if (asset == null || location == null)
                 {
                     LogUtility.LogError("RecordResource Error ");
@@ -294,16 +299,16 @@ namespace H3D.CResources
                 return null;
             }
 
-            internal void RecordInstance(object asset, object instance)
+            internal void RecordInstance( object instance,IResourceLocation location)
             {
-                if (asset == null || instance == null)
+                if (location == null || instance == null)
                 {
                     LogUtility.LogError("RecordInstance Error ");
                     return;
                 }
                 int instanceID = GetInstanceID(instance);
 
-                m_InstanceID2LocationMap.Add(instanceID,Locate(asset));
+                m_InstanceID2LocationMap.Add(instanceID,location);
 
                 m_InstanceID2RefrenceMap.Add(instanceID, new System.WeakReference(instance));
             }

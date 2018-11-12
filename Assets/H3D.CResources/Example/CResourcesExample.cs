@@ -77,22 +77,30 @@ public class CResourcesExample : MonoBehaviour
 
 
         GameObject asset;
-        //BeginSample();
-        asset = CResources.Load<GameObject>("qq").Result;
-        //EndSample("Load Resource");
+        BeginSample();
+        asset = CResources.Load<GameObject>("qq");
+        EndSample("Load Resource");
 
         //BeginSample();
-        GameObject objs1 = Instantiate(asset);
+        //GameObject objs1 = Instantiate(asset);
         //EndSample("Instantiate Resource");
 
+        CResources.Destroy(asset);
+
+        BeginSample();
+        asset = CResources.Load<GameObject>("qqbund");
+        EndSample("Load Bundle");
+   
+
+
+        GameObject ins1 = CResources.CreateInstance<GameObject>("qqbund");
+        CResources.Destroy(ins1);
+        //Debug.LogError("vvv");
+        //CResources.Destroy(ins1);
 
         //BeginSample();
-        asset = CResources.Load<GameObject>("qqbund").Result;
-        //EndSample("Load Bundle");
-
-        //BeginSample();
-        GameObject objs2 = Instantiate(asset);
-        objs2.transform.Translate(Vector3.one);
+        //GameObject objs2 = Instantiate(asset);
+        //objs2.transform.Translate(Vector3.one);
         //EndSample("Instantiate Bundle");
 
 

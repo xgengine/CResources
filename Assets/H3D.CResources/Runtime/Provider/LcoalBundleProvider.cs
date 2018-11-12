@@ -20,12 +20,12 @@ namespace H3D.CResources
                 if (IsDone == false)
                 {
                     string bundleFilePath = "";
-#if UNITY_EDITOR
-                    bundleFilePath = Path.Combine(Path.GetDirectoryName(Application.dataPath), "assetbundles/cresources/" + m_location.InternalId);
 
-#else
-                    bundleFilePath = Path.Combine(Application.streamingAssetsPath, "cresources/" + m_location.InternalId);
-#endif
+                    bundleFilePath = Path.Combine(Path.GetDirectoryName(Application.dataPath), "assetbundles/cresources/" + m_location.InternalId);
+                    if(!File.Exists(bundleFilePath))
+                    {
+                        bundleFilePath = Path.Combine(Application.streamingAssetsPath, "cresources/" + m_location.InternalId);
+                    }
                     AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(bundleFilePath);
                     yield return request;
                     //LogUtility.Log("[Load bundle async][{0}][{1}] [{2}]", m_Location.InternalId, request.assetBundle == null ? "NULL" : request.assetBundle.ToString(), Time.frameCount);
@@ -34,7 +34,14 @@ namespace H3D.CResources
             }
             protected override void Load()
             {
-                AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Application.dataPath), "assetbundles/cresources/" + m_location.InternalId));
+                string bundleFilePath = "";
+                bundleFilePath = Path.Combine(Path.GetDirectoryName(Application.dataPath), "assetbundles/cresources/" + m_location.InternalId);
+                if (!File.Exists(bundleFilePath))
+                {
+                    bundleFilePath = Path.Combine(Application.streamingAssetsPath, "cresources/" + m_location.InternalId);
+                }
+
+                AssetBundle bundle = AssetBundle.LoadFromFile(bundleFilePath);
                 //LogUtility.Log("[Load bundle sync] " + m_Location.InternalId);
                 SetResult(bundle);
             }

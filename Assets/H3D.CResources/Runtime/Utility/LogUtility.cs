@@ -24,13 +24,13 @@ namespace H3D.CResources
         public static void Log(string format, params object[] args)
         {
             logger.Log(m_LogTag,string.Format(format, args));
-            File.AppendAllText(path,string.Format(format,args));
+            File.AppendAllText(path,string.Format(format,args)+"\r\n");
         }
         
         public static void Log(object message)
         {         
             logger.Log(m_LogTag, message);
-            File.AppendAllText(path,message.ToString());
+            File.AppendAllText(path,message.ToString() + "\r\n");
         }
      
         public static void LogError(object message)

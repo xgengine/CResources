@@ -29,9 +29,13 @@ namespace H3D.CResources
 
             protected override void Load()
             {
-                LogUtility.Log("Load asset from bundle sync " + m_location.InternalId);
+                Object asset = null;
                 AssetBundle bundle = m_dependencyOperations[0].Result as AssetBundle;
-                Object asset = bundle.LoadAsset(Path.GetFileName(m_location.InternalId), typeof(T));
+                if(bundle !=null)
+                {
+                    asset = bundle.LoadAsset(Path.GetFileName(m_location.InternalId), typeof(T));
+                }
+                
                 SetResult(asset);
             }
 

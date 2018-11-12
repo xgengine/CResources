@@ -37,8 +37,12 @@ namespace H3D.EditorCResources
 
             AssetBundleManifest manifest = BuildPipeline.BuildAssetBundles(cachePath, assetBundleBuilds, m_Options, EditorUserBuildSettings.activeBuildTarget);
 
+           
+          
+
             if (manifest != null)
             {
+                List<string> bundleMd5CodeInfo = new List<string>();
                 foreach (var bundlePath in manifest.GetAllAssetBundles())
                 {
                     BundleFile bundleFile = new BundleFile()
@@ -47,8 +51,18 @@ namespace H3D.EditorCResources
                         m_Path = Path.Combine(cachePath, bundlePath),
                         m_BFType = BundleFile.BFType.Bundle
                     };
+                    bundleMd5CodeInfo.Add(bundleFile.m_BundleName + " " + EditorCRUtlity.CalauateMD5CodeFile(bundleFile.m_Path));
                     output.Add(bundleFile);
+                }         
+                bundleMd5CodeInfo.Sort();
+                string logFolder =Path.GetDirectoryName( m_BundleCachePath) + "/log";
+                if(!Directory.Exists(logFolder))
+                {
+                    Directory.CreateDirectory(logFolder);
                 }
+                File.WriteAllLines(Path.Combine(logFolder, System.DateTime.Now.ToString("yy-MM-dd-HH-mm-ss") + "bunldeBuild.txt"), bundleMd5CodeInfo.ToArray());
+
+
 
                 //BundleFile manifestFile = new BundleFile()
                 //{
@@ -75,7 +89,6 @@ namespace H3D.EditorCResources
 
         class LocationData
         {
-            public string m_LoadPath;
             public string m_BundleName;
             public int[]  m_dependencies;
         }
