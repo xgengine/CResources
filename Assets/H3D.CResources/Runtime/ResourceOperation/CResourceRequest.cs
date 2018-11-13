@@ -13,7 +13,8 @@ namespace H3D.CResources
         protected object m_context;
         protected int m_refcount;
         protected bool m_isDone;
-
+        protected IResourceLocation m_location;
+        protected List<CResourceRequest<object>> m_dependencyOperations;
         Action<IAsyncOperation> m_completedAction;
 
         protected CResourceRequest()
@@ -82,7 +83,14 @@ namespace H3D.CResources
             {
                 return m_error;
             }
+            protected set
+            {
+                m_error = value;
+                if (m_error != null && CResources.ExceptionHandler != null)
+                    CResources.ExceptionHandler(this, value);
+            }
         }
+
 
         public bool MoveNext()
         {
@@ -225,9 +233,7 @@ namespace H3D.CResources
             base.InvokeCompletionEvent();
         }
 
-        protected IResourceLocation m_location;
 
-        protected List<CResourceRequest<object>> m_dependencyOperations;
 
         public CResourceRequest<T> Send(IResourceLocation location, List<CResourceRequest<object>> loadDependencyOperation, bool isAsync)
         {
@@ -272,6 +278,17 @@ namespace H3D.CResources
         public void LoadImmediate()
         {
             LoadInternal();
+        }
+    }
+
+    public class CompletedRequest<T> : CResourceRequest<T> where T:class
+    {   
+        public virtual CResourceRequest<T> Send(IResourceLocation location,  T val, Exception error = null)
+        {
+            m_location = location;
+            SetResult(val);
+            OperationException = error;
+            return this;
         }
     }
 

@@ -94,7 +94,7 @@ public class CResourcesExample : MonoBehaviour
 
 
         GameObject ins1 = CResources.CreateInstance<GameObject>("qqbund");
-        CResources.Destroy(ins1);
+     
         //Debug.LogError("vvv");
         //CResources.Destroy(ins1);
 

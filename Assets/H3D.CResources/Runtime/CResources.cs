@@ -15,6 +15,8 @@ namespace H3D.CResources
 
         static List<IResourceProvider> m_ResouceProviders;
 
+        public static System.Action<IAsyncOperation, System.Exception> ExceptionHandler;
+
         static CResources()
         {    
         }
@@ -72,22 +74,22 @@ namespace H3D.CResources
             LogUtility.Log("[UnloadUnusedAssetsInternal ] is Done use time {0}", (Time.realtimeSinceStartup - t));
         }
 
-        public static T Load<T>(string requestID) where T : class
+        public static T Load<T>(string key) where T : class
         {
-            IResourceLocation location = Locate<T>(requestID);
+            IResourceLocation location = Locate<T>(key);
             CResourceRequest<T> request = Load<T>(location);
             return request.Result;       
         }
-        public static CResourceRequest<T> LoadAsync<T>(string requestID) where T:class
+        public static CResourceRequest<T> LoadAsync<T>(string key) where T:class
         {
-            IResourceLocation location = Locate<T>(requestID);
+            IResourceLocation location = Locate<T>(key);
             return LoadAsync<T>(location);
         }
 
-        public static T CreateInstance<T>(string requestID) where T:class
+        public static T CreateInstance<T>(string key) where T:class
         {
             CResourceRequest<T> requestInstance = new CResourceRequest<T>();
-            IResourceLocation location = Locate<T>(requestID);
+            IResourceLocation location = Locate<T>(key);
             IResourceProvider provider = GetResourceProvider<T>(location);
             CResourceRequest<T> request = provider.Provide<T>(location, LoadDependencies(location));
 
@@ -102,10 +104,10 @@ namespace H3D.CResources
             return requestInstance.Result;
         }
 
-        public static CResourceRequest<T> CreateInstanceAsync<T>(string requestID) where T : class
+        public static CResourceRequest<T> CreateInstanceAsync<T>(string key) where T : class
         {
             CResourceRequest<T> requestInstance = new CResourceRequest<T>();
-            IResourceLocation location = Locate<T>(requestID);
+            IResourceLocation location = Locate<T>(key);
             IResourceProvider provider = GetResourceProvider<T>(location);
             CResourceRequest<T> request = provider.ProvideAsync<T>(location, LoadDependenciesAsync(location));
             request.Completed += (p) =>
@@ -121,7 +123,15 @@ namespace H3D.CResources
 
         internal static CResourceRequest<T> Load<T>(IResourceLocation location) where T : class
         {
+            if (location == null)
+            {
+                new CompletedRequest<T>().Send(location, null, new System.ArgumentNullException("location"));
+            }
             IResourceProvider provider = GetResourceProvider<T>(location);
+            if (provider == null)
+            {
+                new CompletedRequest<T>().Send(location, null, new UnknownResourceProviderException(location, ""));
+            }
             CResourceRequest<T> request= provider.Provide<T>(location, LoadDependencies(location));
             m_MapLocator.RecordAsset(location,request);
             return request;
@@ -149,14 +159,21 @@ namespace H3D.CResources
                 {
                     requests.Add(LoadAsync<object>(depLocation));
                 }
-            }
-           
+            }        
             return requests;
         }
 
         internal static CResourceRequest<T> LoadAsync<T>(IResourceLocation location) where T : class
         { 
+            if(location == null)
+            {
+                new CompletedRequest<T>().Send(location, null, new System.ArgumentNullException("location"));
+            }
             IResourceProvider provider = GetResourceProvider<T>(location);
+            if(provider == null)
+            {
+                new CompletedRequest<T>().Send(location, null, new UnknownResourceProviderException(location,""));
+            }
             CResourceRequest<T> request = provider.ProvideAsync<T>(location,LoadDependenciesAsync(location));
             m_MapLocator.RecordAsset(location,request);
             return request;        
@@ -164,8 +181,9 @@ namespace H3D.CResources
 
         internal static void ReleaseResource<T>(IResourceLocation location,object asset) where T:class
         {
-
             IResourceProvider provider = GetResourceProvider<T>(location);
+            if (provider == null)
+                return;
             provider.Release(location, asset);
             if (location.HasDependencies)
             {
@@ -173,16 +191,14 @@ namespace H3D.CResources
                 {
                     ReleaseResource<object>(location.Dependencies[i], null);
                 }
-            }
-            
+            }        
         }
 
         public static void Destroy(object obj)
         {
             IResourceLocation location = m_MapLocator.Locate(obj);
             if (location != null)
-            {
-                
+            {     
                 if (m_MapLocator.IsInstance(obj))
                 {
                     m_MapLocator.RemoveInstance(obj);
@@ -203,21 +219,20 @@ namespace H3D.CResources
 
         private static IResourceLocation Locate<T>(string requestID) where T : class
         {
-            IResourceLocation location;
             for (int i = 0; i < m_Locators.Count; i++)
             {
                 IResourceLocator locator = m_Locators[i];
-                location = locator.Locate<T>(requestID);
+                IResourceLocation location = locator.Locate<T>(requestID);
                 if (location != null)
                 {
                     return location;
                 }
             }
-            throw new CanNotLocateExcption (requestID);
+            return null;
         }
 
         private static IResourceProvider GetResourceProvider<T>(IResourceLocation location)where T :class
-        {
+        {       
             foreach (IResourceProvider provider in m_ResouceProviders)
             {
                 if (provider.CanProvide<T>(location))
@@ -225,7 +240,7 @@ namespace H3D.CResources
                     return provider;
                 }
             }
-            throw  new UnknownResourceProviderException(location);
+            return null;
         }
 
         internal class MapLocator
@@ -233,8 +248,6 @@ namespace H3D.CResources
             internal Dictionary<int, IResourceLocation> m_AssetID2LocationMap = new Dictionary<int, IResourceLocation>();
 
             internal Dictionary<int, IResourceLocation> m_InstanceID2LocationMap = new Dictionary<int, IResourceLocation>();
-
-
 
             internal Dictionary<int, KeyValuePair<System.WeakReference, int>> m_AssetID2RefrenceMap = new Dictionary<int, KeyValuePair<System.WeakReference, int>>();
 
