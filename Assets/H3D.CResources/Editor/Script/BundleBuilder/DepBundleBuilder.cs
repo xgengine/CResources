@@ -96,32 +96,42 @@ namespace H3D.EditorCResources
         {
             Dictionary<int, LocationData> maps = new Dictionary<int, LocationData>();
             Dictionary<string, int> bundleNameToLocaiton = new Dictionary<string, int>();
-
+            int location = 0;
+            int loadCount = 0;
             foreach (var assetGroup in assetGroups)
             {
 
                 string bundleName = assetGroup.m_BundleName ;
-               
-                int location;
-                if(assetGroup.m_IsLoadAsset)
-                {
-                    string assetPath = AssetDatabase.GUIDToAssetPath(bundleName.Replace("load/",""));
-                    System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-                    location = CResourceLocator.Lcation(CResourceLocator.AssetPathToLoadPath(assetPath), type);
-                    //Debug.LogError(assetPath+ " "+location);
-                }
-                else
-                {
-                    location = bundleName.GetHashCode();
-                }
+                //List<int> locations = new List<int>();
+                //if(assetGroup.m_LoadPaths.Count>0)
+                //{
+
+                //    foreach(var assetpath in assetGroup.m_LoadPaths)
+                //    {
+                //        System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetpath);
+
+                //        locations.Add(CResourceLocator.Lcation(CResourceLocator.AssetPathToLoadPath(assetpath), type));
+
+                //    }
+                  
+                //}
+                //else
+                //{
+                //    locations.Add(bundleName.GetHashCode());
+                    
+                //}
+ 
+                loadCount += assetGroup.m_LoadPaths.Count;
+                
                 maps.Add(location,
                     new LocationData()
                     {
                         m_BundleName = bundleName,
                         m_dependencies = null
                     }
-                );
-                bundleNameToLocaiton.Add(bundleName,location);        
+                );               
+                bundleNameToLocaiton.Add(bundleName, location);
+                location += 1;
             }
             foreach(var bundleData in maps)
             {
@@ -139,6 +149,19 @@ namespace H3D.EditorCResources
             {
                 using (var bw = new BinaryWriter(stream))
                 {
+                    bw.Write(loadCount);
+
+                    for(int i =0;i< assetGroups.Count;i++)
+                    {
+                        foreach(var loadPath in assetGroups[i].m_LoadPaths)
+                        {
+                            System.Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(loadPath);
+                            bw.Write(CResourceLocator.Lcation(CResourceLocator.AssetPathToLoadPath(loadPath), type));
+                            bw.Write(i);
+                        }
+                    }
+
+
                     bw.Write(maps.Count);
                     foreach (var item in maps)
                     {

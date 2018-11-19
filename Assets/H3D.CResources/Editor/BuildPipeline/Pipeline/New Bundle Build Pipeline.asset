@@ -20,9 +20,8 @@ MonoBehaviour:
   m_BundleBuidler:
   - {fileID: 114992058675069774}
   m_BundleExporter:
-  - {fileID: 114925807967057516}
-  m_PlayerBuilder:
-  - {fileID: 114866293947217048}
+  - {fileID: 114638777816046512}
+  m_PlayerBuilder: []
 --- !u!114 &114072113777777708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43,6 +42,25 @@ MonoBehaviour:
   m_isScriptDebugging: 1
   m_version: 0.0.0
   m_outPath: player_ouput
+--- !u!114 &114638777816046512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dcb9a5b39dcc9849a22f9b06063f2d3, type: 3}
+  m_Name: BundleExporter
+  m_EditorClassIdentifier: 
+  m_InputCount: 0
+  m_OutputCount: 0
+  m_NeedOperateCount: 0
+  m_RealOperateCount: 0
+  m_Progresss: 0
+  m_DeleteExporterFolder: 1
+  m_ExproterPath: assetbundles/cresources
+  m_IsCopyManifest: 1
 --- !u!114 &114842993345672832
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,45 +81,6 @@ MonoBehaviour:
   m_UnityFilterText: 
   m_RegularExpression: 
   m_RegularMatchedInculde: 0
---- !u!114 &114866293947217048
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b7467ff2e492e404cbce30fa48affef9, type: 3}
-  m_Name: PlayerBuilder
-  m_EditorClassIdentifier: 
-  m_InputCount: 0
-  m_OutputCount: 0
-  m_NeedOperateCount: 0
-  m_RealOperateCount: 0
-  m_Progresss: 0
-  m_isDevelopment: 1
-  m_isScriptDebugging: 1
-  m_version: 0.0.0
-  m_outPath: player_out
---- !u!114 &114925807967057516
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2dcb9a5b39dcc9849a22f9b06063f2d3, type: 3}
-  m_Name: BundleExporter
-  m_EditorClassIdentifier: 
-  m_InputCount: 0
-  m_OutputCount: 0
-  m_NeedOperateCount: 0
-  m_RealOperateCount: 0
-  m_Progresss: 0
-  m_DeleteExporterFolder: 1
-  m_ExproterPath: Assets/StreamingAssets/cresources
-  m_IsCopyManifest: 0
 --- !u!114 &114978496894934046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -114,7 +93,7 @@ MonoBehaviour:
   m_Name: CResourcesBundleNameBuilder
   m_EditorClassIdentifier: 
   m_InputCount: 6
-  m_OutputCount: 8
+  m_OutputCount: 6
   m_NeedOperateCount: 0
   m_RealOperateCount: 0
   m_Progresss: 0

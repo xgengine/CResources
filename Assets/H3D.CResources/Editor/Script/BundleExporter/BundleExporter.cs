@@ -8,7 +8,7 @@ namespace H3D.EditorCResources
     public class BundleExporter : Operation, IBundleExporter
     {
         public bool   m_DeleteExporterFolder = true;
-        public string m_ExproterPath;
+        public string m_ExproterPath = CResources.CResourceConst.m_BundlePath;
         public bool   m_IsCopyManifest = false;
         void IBundleExporter.Hanlde(List<BundleFile> input)
         {

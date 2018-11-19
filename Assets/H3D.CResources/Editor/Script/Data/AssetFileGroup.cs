@@ -5,9 +5,9 @@ namespace H3D.EditorCResources
 {
     public class AssetFileGroup
     {
-        public bool m_IsLoadAsset;
         public string m_BundleName;
         public string m_BundleVarintsName;
         public List<AssetFile> m_AssetFiles = new List<AssetFile>();
+        public HashSet<string> m_LoadPaths = new HashSet<string>();
     }
 }

@@ -1,0 +1,40 @@
+ManifestFileVersion: 0
+CRC: 3023826131
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: c64c4b5e6ae08028237f4695f90409ec
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 94f793b7e6a9bef587b94d14a7ba8a4f
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 65
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 22619919be728ae47b6ff2a58719c0a1, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+Assets:
+- Assets/CResources/A/Cube1.prefab
+- Assets/CResources/A/Cube.prefab
+- Assets/CResourcesSharedData/NGUI/Shaders/Unlit - Transparent Colored_Alpha_ETC1.shader
+- Assets/CResourcesSharedData/Materials/TankAlbedo2.mat
+Dependencies:
+- E:/UnityExample/CResources/cresource_workspace/cache/sharedassets/971b41fa47c2604c7930375b67846e7d

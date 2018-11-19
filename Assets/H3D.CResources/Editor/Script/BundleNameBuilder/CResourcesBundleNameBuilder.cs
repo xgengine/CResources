@@ -15,11 +15,13 @@ namespace H3D.EditorCResources
 
             Dictionary<string, List<string>> sharedAssets = new Dictionary<string, List<string>>();
 
-            CollectLoadAndSharedAssets(input,  ref sharedAssets);
+            HashSet<string> loadPaths = new HashSet<string>();
+
+            CollectLoadAndSharedAssets( input,ref loadPaths,  ref sharedAssets);
 
             Dictionary<string, AssetFileGroup> sharedGroups = new Dictionary<string, AssetFileGroup>();
 
-            GenerateSharedAssetGroups(sharedAssets,ref sharedGroups);
+            GenerateSharedAssetGroups(loadPaths, sharedAssets,ref sharedGroups);
 
             output = sharedGroups.Values.ToList();
 
@@ -28,17 +30,17 @@ namespace H3D.EditorCResources
             StatisticsUseTime();
         }
 
-        void CollectLoadAndSharedAssets(List<AssetFile> input,ref Dictionary<string, List<string>> sharedAssets)
+        void CollectLoadAndSharedAssets(List<AssetFile> input,ref HashSet<string> loadPaths, ref Dictionary<string, List<string>> sharedAssets)
         {
 
             Dictionary<string, HashSet<string>> temp = new Dictionary<string, HashSet<string>>();
 
             foreach (var assetFile in input)
             {
-                if (EditorCRUtlity.CyclicReferenceCheck(assetFile.m_FilePath))
-                {
-                    throw new CResourcesException("Have Cyclic Reference ：" + assetFile.m_FilePath);
-                }
+                //if (EditorCRUtlity.CyclicReferenceCheck(assetFile.m_FilePath))
+                //{
+                //    throw new CResourcesException("Have Cyclic Reference ：" + assetFile.m_FilePath);
+                //}
                 string[] deps = AssetDatabase.GetDependencies(assetFile.m_FilePath);
                 foreach (var aPath in deps)
                 {
@@ -64,6 +66,7 @@ namespace H3D.EditorCResources
                         refs.Add(assetFile.m_AssetDatabaseId);
                     }
                 }
+                loadPaths.Add(assetFile.m_FilePath);
 
             }
             foreach(var item in temp)
@@ -73,14 +76,12 @@ namespace H3D.EditorCResources
         }
 
       
-        void GenerateSharedAssetGroups(Dictionary<string, List<string>> sharedAssets, ref Dictionary<string, AssetFileGroup> sharedGroups)
+        void GenerateSharedAssetGroups(HashSet<string> loadPaths,  Dictionary<string, List<string>> sharedAssets, ref Dictionary<string, AssetFileGroup> sharedGroups)
         {
             foreach (var sAsset in sharedAssets)
             {
 
-                string bundleGUID = sAsset.Value[0];
-             
-                 
+                string bundleGUID = sAsset.Value[0];    
                 if(sAsset.Value.Count>1)
                 {
                     for (int i = 1; i < sAsset.Value.Count; i++)
@@ -89,8 +90,9 @@ namespace H3D.EditorCResources
                     }
                     bundleGUID = EditorCRUtlity.CalauateMD5Code(bundleGUID);
                 }
+
                 bool isLoadAsset = false;
-                if(sAsset.Value.Count==1)
+                if(loadPaths.Contains(sAsset.Key.ToLower()))
                 {
                     isLoadAsset = true;
                     bundleGUID = "load/" + bundleGUID;
@@ -105,9 +107,9 @@ namespace H3D.EditorCResources
                 AssetFileGroup group = null;
                 if (!sharedGroups.ContainsKey(bundleGUID))
                 {
-                    group = new AssetFileGroup();
-                    group.m_IsLoadAsset = isLoadAsset;
+                    group = new AssetFileGroup();               
                     group.m_BundleName = bundleGUID;
+                  
                     sharedGroups.Add(bundleGUID, group);
                 }
                 group = sharedGroups[bundleGUID];
@@ -117,6 +119,7 @@ namespace H3D.EditorCResources
                     m_FilePath = sAsset.Key,
                     m_FileLowrPath = sAsset.Key.ToLower()
                 });
+                group.m_LoadPaths.Add(sAsset.Key);
 
             }
         }

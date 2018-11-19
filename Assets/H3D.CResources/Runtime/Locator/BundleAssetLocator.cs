@@ -8,7 +8,7 @@ namespace H3D.CResources
 {
     internal class BundleAssetLocator : CResourceLocator
     {
-
+        protected Dictionary<int, int> m_Load2BundleIDMaps = new Dictionary<int, int>();
         public BundleAssetLocator()
         {
             string locationDataPath;
@@ -28,6 +28,14 @@ namespace H3D.CResources
             {
                 using (var br = new BinaryReader(stream))
                 {
+
+                    int loadCount = br.ReadInt32();
+                    for(int i =0;i<loadCount;i++)
+                    {
+                        m_Load2BundleIDMaps.Add(br.ReadInt32(), br.ReadInt32());
+                    }
+
+
                     int count = br.ReadInt32();
                     m_Locations = new Dictionary<int, IResourceLocation>(count);
                     List<BundleLocation> tempLocations = new List<BundleLocation>(count);
@@ -61,9 +69,9 @@ namespace H3D.CResources
 
             int hashCode = Lcation(requestID as string, typeof(T));
 
-            if (m_Locations.ContainsKey(hashCode))
+            if (m_Load2BundleIDMaps.ContainsKey(hashCode))
             {
-                assetLocation = new BundleAssetLocation(requestID as string, typeof(BundleAssetProvider).FullName, new IResourceLocation[] { m_Locations[hashCode] });
+                assetLocation = new BundleAssetLocation(requestID as string, typeof(BundleAssetProvider).FullName, new IResourceLocation[] { m_Locations[m_Load2BundleIDMaps[hashCode]] });
             }
 
             return assetLocation;

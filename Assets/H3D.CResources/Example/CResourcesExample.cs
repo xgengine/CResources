@@ -76,25 +76,25 @@ public class CResourcesExample : MonoBehaviour
         //Debug.LogError(request.asset);
 
 
-        GameObject asset;
-        BeginSample();
-        asset = CResources.Load<GameObject>("qq");
-        EndSample("Load Resource");
+        //GameObject asset;
+        //BeginSample();
+        //asset = CResources.Load<GameObject>("qq");
+        //EndSample("Load Resource");
 
         //BeginSample();
         //GameObject objs1 = Instantiate(asset);
         //EndSample("Instantiate Resource");
 
-        CResources.Destroy(asset);
+        //CResources.Destroy(asset);
 
-        BeginSample();
-        asset = CResources.Load<GameObject>("qqbund");
-        EndSample("Load Bundle");
-   
+        //BeginSample();
+        //asset = CResources.Load<GameObject>("qqbund");
+        //EndSample("Load Bundle");
 
 
-        GameObject ins1 = CResources.CreateInstance<GameObject>("qqbund");
-     
+
+        //GameObject ins1 = CResources.CreateInstance<GameObject>("qqbund");
+
         //Debug.LogError("vvv");
         //CResources.Destroy(ins1);
 
@@ -109,6 +109,9 @@ public class CResourcesExample : MonoBehaviour
         //Destroy(objs);
         //var objs1 =Instantiate(asset);
         //objs1.name = "vvvv";
+
+       LogUtility.Log(  CResources.Load<GameObject>("a/cube"));
+       LogUtility.Log( CResources.Load<GameObject>("a/cube1"));
 
     }
     float t = 0;
