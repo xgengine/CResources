@@ -1,0 +1,22 @@
+ManifestFileVersion: 0
+CRC: 1254502053
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: c0cd31721f3ccbbb5b529b4a831af589
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: fe397485c3cec1106b49e9ff95e8f8a2
+HashAppended: 0
+ClassTypes:
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+Assets:
+- Assets/CResources/New Material.mat
+Dependencies:
+- C:/Users/14034/Desktop/UnityDemo/CResources/cresource_workspace/cache/sharedassets/9c38401481a1740b4b3f839eea37bb0f
+- C:/Users/14034/Desktop/UnityDemo/CResources/cresource_workspace/cache/sharedassets/971b41fa47c2604c7930375b67846e7d

@@ -1,24 +1,21 @@
 ManifestFileVersion: 0
-CRC: 945793709
+CRC: 1206772081
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
-      Name: sharedassets/9c38401481a1740b4b3f839eea37bb0f
-      Dependencies:
-        Dependency_0: sharedassets/971b41fa47c2604c7930375b67846e7d
-    Info_1:
-      Name: sharedassets/971b41fa47c2604c7930375b67846e7d
-      Dependencies: {}
-    Info_2:
-      Name: sharedassets/bdc80768e78ca134984af8d635f36912
-      Dependencies: {}
-    Info_3:
       Name: sharedassets/4ef24ce4dcfdc3145be615afcf8a15f8
       Dependencies: {}
-    Info_4:
-      Name: sharedassets/d4901972408753d02e32b19aa775aa0d
+    Info_1:
+      Name: load/4ef24ce4dcfdc3145be615afcf8a15f8
       Dependencies:
-        Dependency_0: sharedassets/971b41fa47c2604c7930375b67846e7d
-    Info_5:
-      Name: sharedassets/eaacce86e8f0dbc46ada7f3148f467c5
+        Dependency_0: sharedassets/4ef24ce4dcfdc3145be615afcf8a15f8
+    Info_2:
+      Name: load/d4901972408753d02e32b19aa775aa0d
+      Dependencies:
+        Dependency_0: sharedassets/d4901972408753d02e32b19aa775aa0d
+    Info_3:
+      Name: sharedassets/d4901972408753d02e32b19aa775aa0d
+      Dependencies: {}
+    Info_4:
+      Name: load/eaacce86e8f0dbc46ada7f3148f467c5
       Dependencies: {}

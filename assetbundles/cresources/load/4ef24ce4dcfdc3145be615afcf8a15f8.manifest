@@ -1,0 +1,29 @@
+ManifestFileVersion: 0
+CRC: 2814573507
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 6c7e7eb97d790a007a7d1dacaaf2c820
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 8f40dda791caeb85ec68635dfd3a9593
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 65
+  Script: {instanceID: 0}
+Assets:
+- Assets/CResources/qqbund.prefab
+Dependencies:
+- C:/Users/14034/Desktop/UnityDemo/CResources/cresource_workspace/cache/sharedassets/4ef24ce4dcfdc3145be615afcf8a15f8

@@ -92,7 +92,7 @@ namespace H3D.EditorCResources
                 }
 
                 bool isLoadAsset = false;
-                if(loadPaths.Contains(sAsset.Key.ToLower()))
+                if(loadPaths.Contains(sAsset.Key))
                 {
                     isLoadAsset = true;
                     bundleGUID = "load/" + bundleGUID;
